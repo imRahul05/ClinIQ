@@ -1,0 +1,95 @@
+services:
+  # 1. Production PostgreSQL Database (Operational DB + FHIR Store)
+  postgres:
+    image: postgres:16-alpine
+    container_name: cliniq-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-cliniq}
+    ports:
+      - "5432:5432"
+    volumes:
+      - cliniq_postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Production Redis (Presence, WebRTC Signaling Cache, Rate Limits)
+  redis:
+    image: redis:7-alpine
+    container_name: cliniq-redis-prod
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - cliniq_redis_data_prod:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 3. Medplum FHIR R4 Server
+  medplum:
+    image: medplum/medplum-server:latest
+    container_name: cliniq-medplum-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./medplum.config.json:/usr/src/medplum/packages/server/medplum.config.json:ro
+      - ./medplum.config.json:/usr/src/medplum/medplum.config.json:ro
+    ports:
+      - "8103:8103"
+
+  # 4. ClinIQ API & WebSocket Server (Multi-Stage Production Build)
+  api-server:
+    build:
+      context: .
+      dockerfile: apps/api-server/Dockerfile
+    container_name: cliniq-api-server-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      medplum:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/cliniq}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      MEDPLUM_BASE_URL: ${MEDPLUM_BASE_URL:-http://medplum:8103}
+    ports:
+      - "4000:4000"
+
+  # 5. ClinIQ Next.js Web Frontend (Standalone Production Build)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: cliniq-web-prod
+    restart: unless-stopped
+    depends_on:
+      - api-server
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:4000}
+      NEXT_PUBLIC_MEDPLUM_BASE_URL: ${NEXT_PUBLIC_MEDPLUM_BASE_URL:-http://localhost:8103}
+    ports:
+      - "3000:3000"
+
+volumes:
+  cliniq_postgres_data_prod:
+  cliniq_redis_data_prod:

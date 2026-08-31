@@ -10,7 +10,12 @@
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./apps/**\" --filter \"./scripts\" --if-present run typecheck",
     "test": "pnpm -r --if-present run test",
-    "seed": "pnpm --filter @cliniq/scripts run seed"
+    "seed": "pnpm --filter @cliniq/scripts run seed",
+    "clean:cache": "rm -rf apps/web/.next/dev apps/web/.next/cache",
+    "clean:all": "rm -rf apps/web/.next apps/api-server/dist packages/*/dist scripts/dist",
+    "docker:prod:build": "docker compose -f docker-compose.prod.yml build",
+    "docker:prod:up": "docker compose -f docker-compose.prod.yml up -d",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",

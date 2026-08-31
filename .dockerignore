@@ -1,0 +1,13 @@
+node_modules
+.pnpm-store
+.git
+.gitignore
+*.md
+docs
+graphify-out
+.env
+.env.local
+apps/web/.next/dev
+apps/web/.next/cache
+*.log
+.DS_Store

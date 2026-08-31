@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getSystemStatus } from "../domain/status.domain";
+import { getSystemStatus, _resetStatusCacheForTesting } from "../domain/status.domain";
 import { getSystemStatusController } from "../controllers/status.controller";
 import { SystemStatusResponseSchema } from "@cliniq/api-spec";
 import type { Request, Response } from "express";
@@ -8,6 +8,7 @@ import { pool } from "@cliniq/db";
 describe("Secure Public System Status Domain & Controller", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    _resetStatusCacheForTesting();
   });
 
   describe("getSystemStatus Domain Service", () => {

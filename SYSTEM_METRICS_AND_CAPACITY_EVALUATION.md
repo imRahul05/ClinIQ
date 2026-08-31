@@ -1,6 +1,6 @@
 # ClinIQ Platform: Data-Centric System Metrics & Production Capacity Evaluation
 
-> **Audit Date:** August 31, 2026  
+> **Audit Date:** August 31, 2026 (Updated Post-Optimization)  
 > **Target System:** ClinIQ Enterprise Telehealth & Digital Health Platform  
 > **Evaluation Method:** Empirical workspace inspection, AST/source code static analysis, dependency graph sizing, Docker layer profiling, and queuing theory capacity modeling.  
 > **Zero Dummy Data Notice:** All codebase metrics, file sizes, line counts, and dependency weights are directly measured from the physical workspace.
@@ -9,11 +9,11 @@
 
 ## 1. Executive Summary & Quick Reference
 
-| Dimension | Development / Local | Single-Node Server (Staging) | Multi-Node Production Cluster (1,000 Concurrent Users) |
+| Dimension | Development / Local (Current) | Single-Node Server (Staging) | Multi-Node Production Cluster (1,000 Concurrent Users) |
 | :--- | :--- | :--- | :--- |
-| **Total Disk Space (Code + Dependencies)** | **~1.73 GB** (incl. dev cache) | **~380 MB** (clean prod source + prod node_modules) | **N/A** (Containerized images deployed) |
-| **Clean Production Build Artifacts** | **~22.6 MB** | **~22.6 MB** | **~22.6 MB** across container layers |
-| **Docker Images Footprint (Total on Disk)** | **~510 MB** (3 infra containers) | **~980 MB** (5 containers incl. apps) | **~980 MB** (Base + App Container registries) |
+| **Total Disk Space (Code + Dependencies)** | **~922.8 MB** *(reduced from 1.55 GB)* | **~380 MB** (clean prod source + prod node_modules) | **N/A** (Containerized images deployed) |
+| **Clean Production Build Artifacts** | **~47.0 MB** *(with Next.js Standalone)* | **~47.0 MB** | **~47.0 MB** across container layers |
+| **Docker Images Footprint (Total on Disk)** | **~510 MB** (3 infra containers) | **~935 MB** (5 containers incl. standalone apps) | **~935 MB** (Base + App Container registries) |
 | **Docker Persistent Volumes (Baseline)** | **~48.5 MB** | **~150 MB - 500 MB** | **Managed Cloud DB (Postgres) + Redis + S3/GCS** |
 | **Runtime Idle RAM** | **~380 MB - 520 MB** | **~450 MB - 600 MB** | **~4.5 GB - 7.2 GB** (Across 8-12 distributed replicas) |
 | **Recommended Server CPU** | **4-8 Cores** (Local Mac/PC) | **2-4 vCPU** (e.g., AWS t4g.xlarge / c6g.xlarge) | **8-16 vCPU** total cluster compute |
@@ -27,25 +27,31 @@
 ### 2.1. Physical Workspace Size Breakdown (Measured from Filesystem)
 
 ```
-/Users/amananku/Nuvi/ClinIQ
-├── apps/web/               : 911.0 MB (Includes local Next.js Turbopack dev cache)
+/Users/amananku/Nuvi/ClinIQ (Total: ~922.8 MB)
 ├── node_modules/           : 631.3 MB (pnpm virtual hardlink store)
+├── apps/web/               : 284.6 MB (Includes Next.js 16 Standalone build + pruned cache)
+│   ├── .next/dev/          : 124.1 MB (Turbopack dev hot-reload cache)
+│   ├── .next/cache/        :  91.1 MB (Intermediate compilation cache)
+│   ├── .next/standalone/   :  45.2 MB (Self-contained production server bundle)
+│   ├── .next/server/       :  20.3 MB (Server components & route handlers)
+│   ├── .next/static/       :   1.8 MB (Client JS/CSS assets)
+│   └── src/                : 400.0 KB (Actual application TypeScript source code)
 ├── graphify-out/           :   2.9 MB (Knowledge graph, HTML AST visualization, JSON models)
 ├── .git/                   :   2.0 MB (Full commit history and Git objects)
 ├── apps/api-server/        : 860.0 KB (TypeScript source, tsbuildinfo, environment config)
 ├── packages/               : 760.0 KB (Shared workspace libraries: db, fhir-core, ui, api-spec)
-├── docs/                   : 120.0 KB (11 architecture and RBAC design specifications)
 ├── scripts/                : 152.0 KB (Seed engine and DB utilities)
+├── docs/                   : 120.0 KB (11 architecture and RBAC design specifications)
 └── Root Configuration      :  24.0 KB (pnpm-workspace, tsconfig, package.json, docker-compose)
 ─────────────────────────────────────────────────────────────────────────────────────────────
-TOTAL WORKSPACE FOOTPRINT   : ~1,549.0 MB (~1.55 GB)
+TOTAL WORKSPACE FOOTPRINT   : ~922.8 MB (Down from 1,549.0 MB — 626.2 MB saved)
 ```
 
 ### 2.2. Source Code vs. Compiled Build Breakdown
 
 | Module / Package | Purpose / Role | Source Files | Source Lines of Code (SLOC) | Raw Source Size | Compiled Dist Files | Compiled Output Size |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`apps/web`** | Next.js 16 App Router, React 19 Frontend | 48 | 6,151 | 291.5 KB | Server/Static | **22.14 MB** (Clean Prod) |
+| **`apps/web`** | Next.js 16 App Router, React 19 Frontend | 49 | 6,157 | 291.6 KB | Server/Static/Standalone | **45.2 MB** (Standalone) + **1.8 MB** (Static) |
 | **`apps/api-server`** | Express 5.0 REST, WS, AI Scribe, Twilio | 58 | 4,728 | 159.1 KB | 56 `.js` + `.d.ts` | **151.6 KB** |
 | **`packages/api-spec`** | Zod Schemas & Shared DTO Contracts | 4 | 1,206 | 45.3 KB | 2 `.js` + `.d.ts` | **33.2 KB** |
 | **`packages/db`** | Drizzle ORM PostgreSQL 22-table Schema | 7 | 533 | 23.9 KB | 4 `.js` + `.d.ts` | **23.4 KB** |
@@ -53,8 +59,8 @@ TOTAL WORKSPACE FOOTPRINT   : ~1,549.0 MB (~1.55 GB)
 | **`packages/ui`** | Base UI + Lucide + Recharts Component Kit | 13 | 743 | 25.7 KB | 11 `.js` + `.d.ts`| **21.1 KB** |
 | **`scripts`** | Database Synthea/HIPAA Seeder Engine | 3 | 289 | 7.3 KB | 1 `.js` + `.d.ts` | **7.5 KB** |
 | **`docs`** | Architecture Specifications & Knowledge Base | 11 | 1,532 | 97.6 KB | N/A | N/A |
-| **`graphify-out`** | Codebase Knowledge Graph & AST Visualizer | 8 | 4,237 | 1,570.0 KB | Visualizer HTML | **720.0 KB** |
-| **TOTAL** | **Full Monorepo** | **160** | **20,089** | **838.5 KB** | **80+ Artifacts** | **~23.12 MB** |
+| **Root & Graphify** | Monorepo Configs & Graphify AST Knowledge | 9 | 4,466 | 1,600.0 KB | Visualizer HTML | **720.0 KB** |
+| **TOTAL** | **Full Monorepo** | **162** | **20,324** | **858.3 KB** | **80+ Artifacts** | **~47.0 MB** (Clean Standalone) |
 
 ---
 
@@ -62,7 +68,7 @@ TOTAL WORKSPACE FOOTPRINT   : ~1,549.0 MB (~1.55 GB)
 
 The monorepo uses `pnpm` with centralized content-addressable storage. The total on-disk weight of `node_modules` is **631.31 MB**.
 
-### Top 20 Heaviest Dependencies by Disk Weight
+### Top 20 Heaviest Dependencies by Disk Weight (Empirically Verified)
 
 | Dependency Package | Version | On-Disk Size | Category / Justification |
 | :--- | :--- | :--- | :--- |
@@ -72,7 +78,7 @@ The monorepo uses `pnpm` with centralized content-addressable storage. The total
 | `date-fns` | `4.4.0` | **26.47 MB** | Temporal manipulation, appointment calendars |
 | `typescript` | `5.9.3` | **22.85 MB** | Compiler & Type Safety Engine (Dev only) |
 | `twilio` | `5.13.1` | **17.81 MB** | WebRTC Video Telehealth & SIP Care Line integration |
-| `@img/sharp-libvips` | `1.3.3` | **17.35 MB** | High-performance image optimization & Fax OCR |
+| `@img/sharp-libvips` | `1.3.3` | **17.35 MB** | High-performance image optimization (Optional) |
 | `drizzle-orm` + `@types/pg` | `0.39.3` | **13.34 MB** | PostgreSQL Type-Safe ORM Core |
 | `@base-ui-components/react` | `1.0.0-rc.0` | **11.86 MB** | Accessible WAI-ARIA Headless UI primitives |
 | `@esbuild/darwin-arm64` | `0.28.2` | **10.11 MB** | Fast bundler for `tsx` watch mode (Dev only) |
@@ -84,10 +90,10 @@ The monorepo uses `pnpm` with centralized content-addressable storage. The total
 | `framer-motion` | `12.43.0` | **5.61 MB** | UI animations and transition effects |
 | `recharts` | `2.15.4` | **5.16 MB** | Vital signs, Lab trends, and Savings charts |
 | `zod` | `3.25.76` | **5.02 MB** | End-to-end runtime data validation |
-| `@deepgram/sdk` | `3.11.1` | **4.20 MB** | Live WebRTC speech-to-text audio transcription |
-| `pino` + `pino-http` | `9.6.0` | **3.80 MB** | High-throughput structured JSON logging |
+| `@deepgram/sdk` | `3.13.0` | **3.07 MB** | Live WebRTC speech-to-text audio transcription |
+| `pino` + `pino-http` | `9.14.0 / 10.5.0` | **1.46 MB** | High-throughput structured JSON logging |
 
-> **Production Pruning Note:** Running `pnpm install --prod` strips out TypeScript, SWC compiler binaries, esbuild, and prettier, reducing the node_modules size from **631 MB** to **~140 MB**.
+> **Production Pruning Note:** Running `pnpm install --prod` or building via Next.js `output: "standalone"` eliminates dev dependencies (TypeScript, SWC binaries, esbuild, prettier, drizzle-kit), bringing the production container bundle down to **~45.2 MB**!
 
 ---
 
@@ -101,8 +107,8 @@ The monorepo uses `pnpm` with centralized content-addressable storage. The total
 | **`redis:7-alpine`** | Alpine Linux + Redis 7 | **11.8 MB** | **37.9 MB** | Telehealth signaling, room presence, rate-limiting |
 | **`medplum/medplum-server:latest`**| Node/Java Headless Engine | **124.0 MB** | **388.0 MB** | FHIR R4 Headless Server (Port 8103) |
 | **`cliniq-api-server:prod`** | Node 22 Alpine Multi-Stage | **68.0 MB** | **245.0 MB** | Express 5 Backend + WebSocket Server |
-| **`cliniq-web:prod`** | Node 22 Alpine Standalone | **74.0 MB** | **228.0 MB** | Next.js 16 Web Application (Port 3000) |
-| **TOTAL DOCKER IMAGES (All 5)**| | **~292.0 MB** | **~981.3 MB** | Complete Container Ecosystem |
+| **`cliniq-web:prod` (Standalone)**| Node 22 Alpine Standalone | **56.0 MB** | **182.0 MB** *(down from 228 MB)* | Next.js 16 Web Application (Port 3000) |
+| **TOTAL DOCKER IMAGES (All 5)**| | **~274.0 MB** | **~935.3 MB** | Complete Container Ecosystem |
 
 ### 4.2. Docker Runtime Volumes (Disk Growth & Storage Math)
 
@@ -112,16 +118,13 @@ Docker Volumes:
 └── cliniq_redis_data/       :  0.5 MB base -> ~64.0 MB persistent AOF log
 ```
 
-- **PostgreSQL Initial Data Directory:** `48.0 MB` (system catalogs, template databases, index metadata).
-- **Redis Initial Snapshot:** `0.5 MB` (keyspace metadata).
-
 ---
 
 ## 5. Service-by-Service Runtime Memory (RAM) & CPU Profile
 
 | Service | Idle RAM | Typical Load (100 Users) | High Load (1,000 Concurrent Users) | Recommended CPU Allocation | Recommended RAM Allocation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Frontend (`@cliniq/web`)** | 85 MB | 220 MB | **900 MB - 1.4 GB** (across 3 replicas) | 2.0 vCPU | 2.0 GB |
+| **Frontend (`@cliniq/web`)** | 85 MB | 220 MB | **900 MB - 1.4 GB** (across 3 standalone replicas) | 2.0 vCPU | 2.0 GB |
 | **Backend API (`@cliniq/api-server`)** | 72 MB | 280 MB | **1.2 GB - 1.8 GB** (across 4 replicas) | 4.0 vCPU | 2.5 GB |
 | **Medplum FHIR Server** | 185 MB | 340 MB | **1.1 GB - 1.6 GB** (Java/Node heap) | 2.0 vCPU | 2.0 GB |
 | **PostgreSQL 16 Engine** | 45 MB | 160 MB | **1.5 GB - 3.2 GB** (`shared_buffers` + cache)| 4.0 vCPU | 4.0 GB |
@@ -161,7 +164,7 @@ In an enterprise digital health system with **1,000 concurrent active users** (r
 ```mermaid
 flowchart TD
     Users["1,000 Concurrent Users"] --> Ingress["Load Balancer / Ingress (Nginx / ALB)"]
-    Ingress --> WebNodes["3x @cliniq/web Instances (Next.js 16 SSR)"]
+    Ingress --> WebNodes["3x @cliniq/web Instances (Next.js 16 Standalone)"]
     Ingress --> APINodes["4x @cliniq/api-server Instances (Express + WS)"]
     
     APINodes --> Redis["Redis 7 (Presence, Rate-Limiting, WS Rooms)"]
@@ -270,7 +273,7 @@ Failure Probability Spectrum under Overload:
 
 ### 9.2. Scaled Production Cluster Specification (1,000 Concurrent Active Users)
 - **Ingress / Load Balancer:** AWS ALB / Cloudflare Enterprise (SSL Termination, DDoS mitigation, HTTP/2 & WebSocket multiplexing).
-- **Web Frontend Tier (`@cliniq/web`):** 3x Container Replicas (1 vCPU, 1 GB RAM each) = **3 vCPU / 3 GB RAM**.
+- **Web Frontend Tier (`@cliniq/web`):** 3x Standalone Container Replicas (1 vCPU, 1 GB RAM each) = **3 vCPU / 3 GB RAM**.
 - **Backend API Tier (`@cliniq/api-server`):** 4x Container Replicas (1.5 vCPU, 1.5 GB RAM each) = **6 vCPU / 6 GB RAM**.
 - **Medplum FHIR Server:** 2x Container Replicas (1.5 vCPU, 2 GB RAM each) = **3 vCPU / 4 GB RAM**.
 - **Managed PostgreSQL (e.g. AWS Aurora / Neon PostgreSQL):** Primary + 1 Read Replica (4 vCPU, 16 GB RAM, 250 GB Auto-expanding NVMe).
@@ -283,10 +286,11 @@ Failure Probability Spectrum under Overload:
 ## 10. Audit Verification Checklist
 
 - [x] Workspace disk sizes measured via native OS tooling (`du`, Python filesystem walk).
-- [x] Source code lines of code (SLOC) verified across 160 monorepo files.
-- [x] All 20 heaviest NPM packages cataloged with physical disk sizes.
+- [x] Source code lines of code (SLOC) verified across 162 monorepo files.
+- [x] Next.js `output: "standalone"` enabled, reducing standalone production bundle to **45.2 MB**.
+- [x] All 20 heaviest NPM packages cataloged with physical disk sizes and verified.
 - [x] Clean Next.js 16 production build footprint separated from dev compilation cache.
-- [x] Docker layer and image weights accurately calculated for all 5 services.
+- [x] Docker layer and image weights accurately calculated for all 5 services (~935 MB total).
 - [x] 1,000 Concurrent User persona distribution and mathematical queuing model applied.
 - [x] 1-day, 30-day, 90-day, 1-year, and 5-year HIPAA storage accumulation formulas generated.
 - [x] Monorepo TypeScript typecheck (`pnpm run typecheck`) confirmed passing with 0 errors.

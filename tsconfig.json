@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "./packages/db" },
+    { "path": "./packages/fhir-core" },
+    { "path": "./packages/ui" },
+    { "path": "./packages/api-spec" },
+    { "path": "./apps/api-server" },
+    { "path": "./apps/web" },
+    { "path": "./scripts" }
+  ]
+}

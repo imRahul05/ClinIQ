@@ -1,0 +1,49 @@
+services:
+  # Local PostgreSQL for ClinIQ operational DB & Self-Hosted FHIR store
+  postgres:
+    image: postgres:16-alpine
+    container_name: cliniq-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cliniq
+    ports:
+      - "5433:5432"
+    volumes:
+      - cliniq_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Local Redis for caching, rate-limiting, and WebRTC presence
+  redis:
+    image: redis:7-alpine
+    container_name: cliniq-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - cliniq_redis_data:/data
+
+  # Self-Hosted Medplum FHIR R4 Headless Server (Local)
+  medplum:
+    image: medplum/medplum-server:latest
+    container_name: cliniq-medplum-fhir
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./medplum.config.json:/usr/src/medplum/packages/server/medplum.config.json:ro
+      - ./medplum.config.json:/usr/src/medplum/medplum.config.json:ro
+    ports:
+      - "8103:8103"
+
+volumes:
+  cliniq_postgres_data:
+  cliniq_redis_data:

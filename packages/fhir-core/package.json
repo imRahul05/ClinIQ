@@ -1,0 +1,23 @@
+{
+  "name": "@cliniq/fhir-core",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@medplum/core": "^5.1.31",
+    "@medplum/fhirtypes": "^5.1.31",
+    "@medplum/react-hooks": "^5.1.31"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "react": "^19.0.0",
+    "typescript": "~5.9.3"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  }
+}

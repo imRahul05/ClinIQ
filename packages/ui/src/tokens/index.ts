@@ -1,0 +1,61 @@
+export const CLINICAL_THEME = {
+  light: {
+    background: "#f8fafc",
+    card: "#ffffff",
+    cardMuted: "#f1f5f9",
+    foreground: "#0f172a",
+    mutedForeground: "#64748b",
+    border: "#e2e8f0",
+    primary: "#0284c7", // Clinical Blue
+    primaryHover: "#0369a1",
+    primarySubtle: "#e0f2fe",
+    accent: "#0ea5e9",
+  },
+  dark: {
+    background: "#090d16",
+    card: "#0f172a",
+    cardMuted: "#1e293b",
+    foreground: "#f8fafc",
+    mutedForeground: "#94a3b8",
+    border: "#1e293b",
+    primary: "#38bdf8",
+    primaryHover: "#0ea5e9",
+    primarySubtle: "#082f49",
+    accent: "#38bdf8",
+  },
+  status: {
+    success: {
+      light: "#059669",
+      bgLight: "#ecfdf5",
+      borderLight: "#a7f3d0",
+      dark: "#34d399",
+      bgDark: "rgba(6, 78, 59, 0.3)",
+      borderDark: "rgba(52, 211, 153, 0.2)",
+    },
+    warning: {
+      light: "#d97706",
+      bgLight: "#fffbeb",
+      borderLight: "#fde68a",
+      dark: "#fbbf24",
+      bgDark: "rgba(120, 53, 15, 0.3)",
+      borderDark: "rgba(251, 191, 36, 0.2)",
+    },
+    danger: {
+      light: "#e11d48",
+      bgLight: "#fff1f2",
+      borderLight: "#fecdd3",
+      dark: "#fb7185",
+      bgDark: "rgba(136, 19, 55, 0.3)",
+      borderDark: "rgba(251, 113, 133, 0.2)",
+    },
+    info: {
+      light: "#0284c7",
+      bgLight: "#f0f9ff",
+      borderLight: "#bae6fd",
+      dark: "#38bdf8",
+      bgDark: "rgba(12, 74, 110, 0.3)",
+      borderDark: "rgba(56, 189, 248, 0.2)",
+    },
+  },
+} as const;
+

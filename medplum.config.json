@@ -1,0 +1,19 @@
+{
+  "port": 8103,
+  "baseUrl": "http://localhost:8103/",
+  "appBaseUrl": "http://localhost:3000/",
+  "database": {
+    "host": "postgres",
+    "port": 5432,
+    "database": "cliniq_fhir",
+    "username": "postgres",
+    "password": "postgres"
+  },
+  "redis": {
+    "host": "redis",
+    "port": 6379
+  },
+  "logLevel": "INFO",
+  "auditEventLogging": true,
+  "registerEnabled": true
+}

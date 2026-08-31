@@ -1,0 +1,20 @@
+{
+  "name": "cliniq-monorepo",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter @cliniq/web run dev",
+    "dev:api": "pnpm --filter @cliniq/api-server run dev",
+    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./apps/**\" --filter \"./scripts\" --if-present run typecheck",
+    "test": "pnpm -r --if-present run test",
+    "seed": "pnpm --filter @cliniq/scripts run seed"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "prettier": "^3.5.3",
+    "typescript": "~5.9.3"
+  }
+}

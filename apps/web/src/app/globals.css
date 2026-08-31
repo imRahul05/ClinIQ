@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+@source "../../../packages/ui/src";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #fbfbfa;
+  --foreground: #111110;
+  --card: #ffffff;
+  --card-foreground: #111110;
+  --popover: #ffffff;
+  --popover-foreground: #111110;
+  --primary: #0284c7;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f2;
+  --secondary-foreground: #111110;
+  --muted: #f4f4f2;
+  --muted-foreground: #666562;
+  --accent: #111110;
+  --accent-foreground: #ffffff;
+  --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
+  --border: #e5e5e2;
+  --input: #e5e5e2;
+  --ring: #0284c7;
+  --radius: 0.75rem;
+
+  /* Vernier Precision Design System Tokens (Light Mode) */
+  --paper: #fbfbfa;
+  --paper-raised: #ffffff;
+  --paper-sunken: #f4f4f2;
+  --ink: #111110;
+  --ink-muted: #666562;
+  --ink-faint: #9b9a97;
+  --line: #e5e5e2;
+  --line-strong: #cac9c5;
+  --accent-contrast: #ffffff;
+  --gutter: clamp(1.25rem, 5vw, 4rem);
+  --section-y: clamp(4rem, 8vw, 7rem);
+  --header-h: 4rem;
+
+  /* Verification States */
+  --state-proven: #059669;
+  --state-broken: #e11d48;
+  --state-investigating: #4f46e5;
+  --state-inconclusive: #d97706;
+  --state-unverified: #6b7280;
+
+  /* Color mappings */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+.dark {
+  --background: #0b0b0a;
+  --foreground: #fbfbfa;
+  --card: #141413;
+  --card-foreground: #fbfbfa;
+  --popover: #141413;
+  --popover-foreground: #fbfbfa;
+  --primary: #38bdf8;
+  --primary-foreground: #0b0b0a;
+  --secondary: #181817;
+  --secondary-foreground: #fbfbfa;
+  --muted: #141413;
+  --muted-foreground: #9b9a97;
+  --accent: #fbfbfa;
+  --accent-foreground: #0b0b0a;
+  --destructive: #f43f5e;
+  --destructive-foreground: #0b0b0a;
+  --border: #222220;
+  --input: #222220;
+  --ring: #38bdf8;
+
+  /* Vernier Precision Design System Tokens (Dark Mode) */
+  --paper: #0b0b0a;
+  --paper-raised: #141413;
+  --paper-sunken: #070706;
+  --ink: #fbfbfa;
+  --ink-muted: #9b9a97;
+  --ink-faint: #5a5956;
+  --line: #222220;
+  --line-strong: #333330;
+  --accent: #fbfbfa;
+  --accent-contrast: #0b0b0a;
+
+  /* Verification States */
+  --state-proven: #10b981;
+  --state-broken: #f43f5e;
+  --state-investigating: #818cf8;
+  --state-inconclusive: #fbbf24;
+  --state-unverified: #6b7280;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Outfit", sans-serif;
+  background-color: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Isometric Depth Card */
+.iso-card {
+  --iso-depth: 8px;
+  position: relative;
+}
+
+.iso-card::before {
+  content: "";
+  inset: 0 calc(-1 * var(--iso-depth)) 0 auto;
+  width: var(--iso-depth);
+  transform-origin: 0 0;
+  background: var(--paper-raised);
+  position: absolute;
+  transform: skewY(45deg);
+  border: 1px solid var(--line-strong);
+  border-left: none;
+}
+
+.iso-card::after {
+  content: "";
+  inset: auto 0 calc(-1 * var(--iso-depth)) 0;
+  height: var(--iso-depth);
+  transform-origin: 0 0;
+  background: var(--paper-raised);
+  position: absolute;
+  transform: skew(45deg);
+  border: 1px solid var(--line-strong);
+  border-top: none;
+}
+
+/* Ruled Divider Background Ticks */
+[data-rule-draw="true"] {
+  background-image: repeating-linear-gradient(to right, var(--line-strong) 0 1px, transparent 1px 16px);
+}
+
+@keyframes shine {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+.animate-shine {
+  background-size: 200% auto;
+  animation: shine 8s linear infinite;
+}
+
+

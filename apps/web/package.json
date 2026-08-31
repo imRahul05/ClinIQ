@@ -1,0 +1,43 @@
+{
+  "name": "@cliniq/web",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@base-ui-components/react": "^1.0.0-rc.0",
+    "@cliniq/api-spec": "workspace:*",
+    "@cliniq/fhir-core": "workspace:*",
+    "@cliniq/ui": "workspace:*",
+    "@medplum/core": "^5.1.31",
+    "@medplum/fhirtypes": "^5.1.31",
+    "@medplum/react-hooks": "^5.1.31",
+    "@tanstack/react-query": "^5.66.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.4.7",
+    "lucide-react": "^0.475.0",
+    "next": "^16.3.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.1",
+    "tailwind-merge": "^3.0.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.6",
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^4.0.6",
+    "typescript": "~5.9.3",
+    "vitest": "^3.0.8"
+  }
+}
+

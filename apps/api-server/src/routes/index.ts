@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
 import authRoutes from "./auth";
+import statusRoutes from "./status";
+import { getSystemStatusController } from "../controllers/status.controller";
 import callRoutes from "./calls";
 import scribeRoutes from "./scribe";
 import patientRoutes from "./patient";
@@ -14,9 +16,8 @@ import adminRoutes from "./admin";
 const router = Router();
 
 // Public routes
-router.get("/health", (req, res) => {
-  res.json({ status: "ok", service: "ClinIQ API Server", timestamp: new Date().toISOString() });
-});
+router.use("/status", statusRoutes);
+router.get("/health", getSystemStatusController); // Backward compatibility alias to hardened status controller
 router.use("/auth", authRoutes);
 
 // Protected routes (centralized authentication barrier)

@@ -1548,6 +1548,7 @@ export default function LandingPage() {
               <div>
                 <h3 className="mb-4 font-mono text-xs uppercase tracking-[0.16em] text-[var(--ink-faint)]">Compliance</h3>
                 <ul className="space-y-2.5 text-xs text-[var(--ink-muted)]">
+                  <li><Link href="/status" className="hover:text-[var(--ink)] flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />System Status</Link></li>
                   <li><a href="#scene-security" className="hover:text-[var(--ink)]">HIPAA Statement</a></li>
                   <li><a href="#scene-security" className="hover:text-[var(--ink)]">SOC2 Type II</a></li>
                   <li><a href="#scene-security" className="hover:text-[var(--ink)]">Zero Data Retention</a></li>

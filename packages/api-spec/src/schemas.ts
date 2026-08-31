@@ -1194,4 +1194,99 @@ export type PatientRosterItem = z.infer<typeof PatientRosterItemSchema> & {
 };
 export interface IPatientRosterItem extends PatientRosterItem {}
 
+// ============================================================================
+// SYSTEM STATUS & OPERATIONAL HEALTH DOMAIN SCHEMAS
+// ============================================================================
 
+/**
+ * Normalized health status levels across all internal and external services.
+ */
+export const HealthStatusLevelSchema = z.enum([
+  "operational",
+  "degraded",
+  "outage",
+  "maintenance",
+]);
+export type HealthStatusLevel = z.infer<typeof HealthStatusLevelSchema>;
+
+/**
+ * Aggregated overall system operating status.
+ */
+export const SystemOverallStateSchema = z.enum([
+  "all_systems_operational",
+  "degraded_performance",
+  "partial_outage",
+  "major_outage",
+]);
+export type SystemOverallState = z.infer<typeof SystemOverallStateSchema>;
+
+/**
+ * Functional category of internal platform subsystems.
+ */
+export const ServiceCategorySchema = z.enum([
+  "core_platform",
+  "clinical_infrastructure",
+  "ai_intelligence",
+]);
+export type ServiceCategory = z.infer<typeof ServiceCategorySchema>;
+
+/**
+ * Status schema for internal ClinIQ platform subsystems.
+ */
+export const SubsystemStatusSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  category: ServiceCategorySchema,
+  status: HealthStatusLevelSchema,
+  latencyMs: z.number().int().nonnegative().optional(),
+  message: z.string(),
+});
+export type SubsystemStatus = z.infer<typeof SubsystemStatusSchema>;
+export interface ISubsystemStatus extends SubsystemStatus {}
+
+/**
+ * Status schema for external AI and cloud dependencies (Anthropic, OpenAI, Google AI, Medplum).
+ */
+export const ThirdPartyDependencyStatusSchema = z.object({
+  provider: z.enum(["anthropic", "openai", "google_ai", "medplum_fhir"]),
+  name: z.string().min(1),
+  status: HealthStatusLevelSchema,
+  officialStatusUrl: z.string(),
+  incidentSummary: z.string().optional(),
+  lastCheckedAt: z.string(),
+});
+export type ThirdPartyDependencyStatus = z.infer<typeof ThirdPartyDependencyStatusSchema>;
+export interface IThirdPartyDependencyStatus extends ThirdPartyDependencyStatus {}
+
+/**
+ * Standardized Public /status API Response Envelope.
+ * Zero-leak: Contains no internal IPs, database connection details, or PHI.
+ */
+export const SystemStatusResponseSchema = z.object({
+  overall: SystemOverallStateSchema,
+  message: z.string(),
+  timestamp: z.string(),
+  cachedUntil: z.string(),
+  coreServices: z.array(SubsystemStatusSchema),
+  thirdPartyServices: z.array(ThirdPartyDependencyStatusSchema),
+});
+export type SystemStatusResponse = z.infer<typeof SystemStatusResponseSchema>;
+export interface ISystemStatusResponse extends SystemStatusResponse {}
+
+/**
+ * Schema for validating third-party Atlassian Statuspage payloads (Anthropic, OpenAI).
+ */
+export const ExternalStatusPageSchema = z.object({
+  page: z
+    .object({
+      id: z.string().optional(),
+      name: z.string().optional(),
+      updated_at: z.string().optional(),
+    })
+    .optional(),
+  status: z.object({
+    indicator: z.string(),
+    description: z.string().optional(),
+  }),
+});
+export type ExternalStatusPageResponse = z.infer<typeof ExternalStatusPageSchema>;

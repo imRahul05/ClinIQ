@@ -18,7 +18,18 @@ app.use(
 );
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
-app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => req.url === "/api/health" } }));
+app.use(
+  pinoHttp({
+    logger,
+    autoLogging: {
+      ignore: (req) =>
+        req.url === "/api/status" ||
+        req.url === "/api/health" ||
+        req.url === "/status" ||
+        req.url === "/health",
+    },
+  })
+);
 
 app.use("/api", routes);
 app.use(errorHandler);

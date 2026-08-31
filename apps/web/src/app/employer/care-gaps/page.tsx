@@ -11,19 +11,9 @@ import {
   StatCard,
 } from "@cliniq/ui";
 import { AlertTriangle, Target, Award } from "lucide-react";
+import type { HedisMeasureItem } from "@cliniq/api-spec";
 
-interface HedisMeasure {
-  id: string;
-  measure: string;
-  eligible: number;
-  closed: number;
-  rate: string;
-  benchmark: string;
-  status: string;
-  [key: string]: string | number;
-}
-
-const HEDIS_MEASURES: HedisMeasure[] = [
+const HEDIS_MEASURES: HedisMeasureItem[] = [
   { id: "m-1", measure: "Colorectal Cancer Screening (COL)", eligible: 340, closed: 265, rate: "77.9%", benchmark: "72.0%", status: "Above Benchmark" },
   { id: "m-2", measure: "Comprehensive Diabetes Care: HbA1c Control (<8%)", eligible: 115, closed: 88, rate: "76.5%", benchmark: "68.5%", status: "Above Benchmark" },
   { id: "m-3", measure: "Controlling High Blood Pressure (CBP)", eligible: 230, closed: 172, rate: "74.8%", benchmark: "70.1%", status: "Above Benchmark" },
@@ -83,7 +73,7 @@ export default function EmployerCareGapsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
-          <DataTable<HedisMeasure>
+          <DataTable<HedisMeasureItem>
             data={HEDIS_MEASURES}
             keyExtractor={(item) => item.id}
             columns={[

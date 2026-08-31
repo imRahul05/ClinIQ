@@ -11,19 +11,33 @@ router.use(requireAdmin);
 // Query searchable, paginated PHI Audit Log
 router.get("/logs", async (req, res) => {
   const currentOrgId = orgId(req);
-  const { limit = 50, offset = 0, patientId, actorId } = req.query;
+  const parseResult = AuditLogQuerySchema.safeParse(req.query);
+  if (!parseResult.success) {
+    res.status(400).json({ error: "Invalid query parameters", details: parseResult.error.format() });
+    return;
+  }
+
+  const { limit, offset, patientId, actorId } = parseResult.data;
 
   const logs = await db
     .select()
     .from(auditLogs)
     .where(
-      patientId
-        ? and(eq(auditLogs.organizationId, currentOrgId), eq(auditLogs.patientId, String(patientId)))
+      patientId && actorId
+        ? and(
+            eq(auditLogs.organizationId, currentOrgId),
+            eq(auditLogs.patientId, patientId),
+            eq(auditLogs.actorId, actorId)
+          )
+        : patientId
+        ? and(eq(auditLogs.organizationId, currentOrgId), eq(auditLogs.patientId, patientId))
+        : actorId
+        ? and(eq(auditLogs.organizationId, currentOrgId), eq(auditLogs.actorId, actorId))
         : eq(auditLogs.organizationId, currentOrgId)
     )
     .orderBy(desc(auditLogs.createdAt))
-    .limit(Number(limit))
-    .offset(Number(offset));
+    .limit(limit)
+    .offset(offset);
 
   res.json({ logs });
 });

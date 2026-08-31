@@ -1,19 +1,21 @@
 import { http } from "./http";
+import type {
+  AuditLogsResponse,
+  AdminUsersResponse,
+  AdminProvidersResponse,
+  AdminEmployersResponse,
+} from "@cliniq/api-spec";
 
-export interface AuditLogItem {
-  id: string;
-  actorEmail?: string;
-  actorRole?: string;
-  action: string;
-  resourceType: string;
-  requestPath?: string;
-  ipAddress?: string;
-  createdAt: string;
-}
-
-export interface AuditLogsResponse {
-  logs: AuditLogItem[];
-}
+export type {
+  AuditLogItem,
+  AuditLogsResponse,
+  StaffUserItem,
+  AdminUsersResponse,
+  AdminProviderItem,
+  AdminProvidersResponse,
+  AdminEmployerItem,
+  AdminEmployersResponse,
+} from "@cliniq/api-spec";
 
 export async function getAdminAuditLogsApi(params?: {
   patientId?: string;
@@ -22,3 +24,16 @@ export async function getAdminAuditLogsApi(params?: {
 }): Promise<AuditLogsResponse> {
   return http.get<AuditLogsResponse>("/api/audit/logs", { params });
 }
+
+export async function getAdminUsersApi(): Promise<AdminUsersResponse> {
+  return http.get<AdminUsersResponse>("/api/admin/users");
+}
+
+export async function getAdminProvidersApi(): Promise<AdminProvidersResponse> {
+  return http.get<AdminProvidersResponse>("/api/admin/providers");
+}
+
+export async function getAdminEmployersApi(): Promise<AdminEmployersResponse> {
+  return http.get<AdminEmployersResponse>("/api/admin/employers");
+}
+

@@ -1,12 +1,10 @@
 import { db, nurseAvailability, providerEmployers } from "@cliniq/db";
 import { eq, and } from "drizzle-orm";
+import type { RingResult } from "@cliniq/api-spec";
 import { sendToUser, getAvailableProviderIds } from "./ws";
 import { logger } from "./logger";
 
-export interface RingResult {
-  strategy: "assigned_primary" | "available_on_duty" | "broadcast";
-  notifiedProviderIds: string[];
-}
+export type { RingResult } from "@cliniq/api-spec";
 
 export async function ringProvidersForCall(params: {
   organizationId: string;

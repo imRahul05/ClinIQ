@@ -20,21 +20,9 @@ import {
   FileText,
   ArrowRight,
 } from "lucide-react";
+import type { ProviderWorklistItem } from "@cliniq/api-spec";
 
-interface WorklistItem {
-  id: string;
-  name: string;
-  mrn: string;
-  dob: string;
-  employer: string;
-  riskTier: "low" | "moderate" | "high";
-  gapCount: number;
-  lastVisit: string;
-  status: string;
-  [key: string]: string | number;
-}
-
-const DEMO_WORKLIST: WorklistItem[] = [
+const DEMO_WORKLIST: ProviderWorklistItem[] = [
   { id: "p-1", name: "Sarah Johnson", mrn: "948204", dob: "1988-04-12", employer: "Apex Global Tech", riskTier: "low", gapCount: 1, lastVisit: "Aug 15, 2026", status: "Active Verified" },
   { id: "p-2", name: "Marcus Miller", mrn: "830219", dob: "1972-11-03", employer: "Apex Global Tech", riskTier: "high", gapCount: 3, lastVisit: "Jul 29, 2026", status: "Pending Triage" },
   { id: "p-3", name: "David Vance", mrn: "419820", dob: "1965-06-21", employer: "Summit Health Logistics", riskTier: "moderate", gapCount: 2, lastVisit: "Aug 02, 2026", status: "Active Verified" },
@@ -111,7 +99,7 @@ export default function ProviderDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
-          <DataTable<WorklistItem>
+          <DataTable<ProviderWorklistItem>
             data={DEMO_WORKLIST}
             keyExtractor={(item) => item.id}
             searchPlaceholder="Search patients by name, MRN, or employer group..."

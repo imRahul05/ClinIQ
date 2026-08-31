@@ -10,6 +10,7 @@ import {
 } from "@cliniq/db";
 import { eq, and, desc } from "drizzle-orm";
 import { authMiddleware, requireRole, orgId } from "../middleware/auth";
+import { ProviderAvailabilitySchema } from "@cliniq/api-spec";
 import { logPhiAccess } from "../lib/audit";
 
 const router = Router();
@@ -33,9 +34,15 @@ router.get("/worklist", async (req, res) => {
 
 // Provider toggle availability / on-duty status
 router.post("/availability", async (req, res) => {
+  const parseResult = ProviderAvailabilitySchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: "Invalid availability parameters", details: parseResult.error.format() });
+    return;
+  }
+
   const currentOrgId = orgId(req);
   const providerId = req.user?.providerId;
-  const { isAvailable, status } = req.body;
+  const { isAvailable, status } = parseResult.data;
 
   if (!providerId) {
     res.status(400).json({ error: "No provider associated with user" });

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db, callSessions, patients, providers } from "@cliniq/db";
 import { eq, and } from "drizzle-orm";
 import { authMiddleware, orgId } from "../middleware/auth";
-import { InitiateCallSchema, AnswerCallSchema } from "@cliniq/api-spec";
+import { InitiateCallSchema, AnswerCallSchema, EndCallSchema } from "@cliniq/api-spec";
 import { ringProvidersForCall } from "../lib/callRouting";
 import { logPhiAccess } from "../lib/audit";
 
@@ -110,7 +110,13 @@ router.post("/answer", async (req, res) => {
 
 // End call session
 router.post("/end", async (req, res) => {
-  const { callSessionId, durationSeconds, transcriptText } = req.body;
+  const parseResult = EndCallSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: "Invalid call end parameters", details: parseResult.error.format() });
+    return;
+  }
+
+  const { callSessionId, durationSeconds, transcriptText } = parseResult.data;
   const currentOrgId = orgId(req);
 
   const [endedSession] = await db
@@ -118,11 +124,16 @@ router.post("/end", async (req, res) => {
     .set({
       status: "completed",
       endedAt: new Date(),
-      durationSeconds: Number(durationSeconds) || 0,
+      durationSeconds: durationSeconds || 0,
       transcriptText: transcriptText || undefined,
     })
     .where(and(eq(callSessions.id, callSessionId), eq(callSessions.organizationId, currentOrgId)))
     .returning();
+
+  if (!endedSession) {
+    res.status(404).json({ error: "Call session not found" });
+    return;
+  }
 
   res.json({
     callSession: endedSession,

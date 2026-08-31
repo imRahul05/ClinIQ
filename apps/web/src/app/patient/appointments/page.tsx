@@ -11,16 +11,9 @@ import {
   Badge,
 } from "@cliniq/ui";
 import { Calendar, Clock, CheckCircle2, User, Video, MapPin } from "lucide-react";
+import type { AppointmentSlotItem } from "@cliniq/api-spec";
 
-interface Slot {
-  id: string;
-  time: string;
-  practitioner: string;
-  specialty: string;
-  type: "video" | "in-person";
-}
-
-const AVAILABLE_SLOTS: Slot[] = [
+const AVAILABLE_SLOTS: AppointmentSlotItem[] = [
   { id: "slot-1", time: "Tomorrow at 9:30 AM", practitioner: "Elena Rostova, RN", specialty: "Virtual Care Consultation", type: "video" },
   { id: "slot-2", time: "Tomorrow at 11:00 AM", practitioner: "Elena Rostova, RN", specialty: "Virtual Care Consultation", type: "video" },
   { id: "slot-3", time: "Thursday, Sep 04 at 2:00 PM", practitioner: "Dr. Robert Chen, MD", specialty: "Primary Care Comprehensive", type: "video" },
@@ -28,7 +21,7 @@ const AVAILABLE_SLOTS: Slot[] = [
 ];
 
 export default function AppointmentsPage() {
-  const [selectedSlot, setSelectedSlot] = React.useState<Slot | null>(null);
+  const [selectedSlot, setSelectedSlot] = React.useState<AppointmentSlotItem | null>(null);
   const [isBooked, setIsBooked] = React.useState(false);
 
   const handleHoldAndConfirm = () => {

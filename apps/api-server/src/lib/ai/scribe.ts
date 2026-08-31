@@ -1,45 +1,29 @@
 import { generateObject } from "ai";
-import { z } from "zod";
-import { ScribeSoapNoteSchema, type ScribeSoapNote } from "@cliniq/api-spec";
+import {
+  ScribeSoapNoteSchema,
+  ClinicalScribeOutputSchema,
+  type ScribeSoapNote,
+  type ClinicalScribeOutput,
+  type GenerateSoapNoteParams,
+} from "@cliniq/api-spec";
 import { AI_TASK_ROUTING } from "../../config/ai.config";
 import { resolveModel } from "./client";
 import { logger } from "../logger";
 
-export const ClinicalScribeOutputSchema = z.object({
-  soapNote: ScribeSoapNoteSchema,
-  suggestedIcdCodes: z.array(z.string()).describe("Relevant ICD-10 diagnosis codes (e.g. ['J00', 'R05.9'])"),
-  summary: z.string().describe("Concise 1-2 sentence clinical summary of the encounter"),
-});
+export {
+  ClinicalScribeOutputSchema,
+  type ClinicalScribeOutput,
+  type GenerateSoapNoteParams,
+};
 
-export type ClinicalScribeOutput = z.infer<typeof ClinicalScribeOutputSchema>;
-
-export interface GenerateSoapNoteParams {
-  transcript: string;
-  patientContext?: {
-    age?: number;
-    gender?: string;
-    activeConditions?: string[];
-  };
-}
 
 /**
  * Synthesizes a structured SOAP note from an ambient clinical encounter transcript.
  * Implements automated cascading fallback across configured primary and secondary AI providers.
  */
 export async function generateClinicalSoapNote(
-  params: {
-    transcript: string;
-    patientContext?: {
-      age?: number;
-      gender?: string;
-      activeConditions?: string[];
-    };
-  }
-): Promise<{
-  soapNote: ScribeSoapNote;
-  suggestedIcdCodes: string[];
-  summary: string;
-}> {
+  params: GenerateSoapNoteParams
+): Promise<ClinicalScribeOutput> {
   const taskConfig = AI_TASK_ROUTING.clinicalScribe;
   const executionChain = [taskConfig.primary, ...taskConfig.fallbacks];
 

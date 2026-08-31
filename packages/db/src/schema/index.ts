@@ -67,6 +67,8 @@ export const providers = pgTable("providers", {
   organizationId: uuid("organization_id")
     .notNull()
     .references(() => organizations.id),
+  medplumUserId: text("medplum_user_id"),
+  medplumPractitionerId: text("medplum_practitioner_id"),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   credential: text("credential"),
@@ -87,7 +89,11 @@ export const providers = pgTable("providers", {
   availabilitySchedule: jsonb("availability_schedule"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (t) => [
+  index("providers_org_idx").on(t.organizationId),
+  index("providers_medplum_user_idx").on(t.medplumUserId),
+  index("providers_medplum_practitioner_idx").on(t.medplumPractitionerId),
+]);
 
 // ── PROVIDER EMPLOYERS MAPPING ────────────────────────────────────────────────
 export const providerEmployers = pgTable("provider_employers", {
@@ -156,6 +162,7 @@ export const patients = pgTable("patients", {
 }, (t) => [
   index("patients_org_employer_idx").on(t.organizationId, t.employerId),
   index("patients_org_risk_tier_idx").on(t.organizationId, t.riskTier),
+  index("patients_medplum_patient_idx").on(t.medplumPatientId),
   uniqueIndex("patients_identity_uidx").on(
     t.organizationId,
     t.employerId,
@@ -171,6 +178,8 @@ export const users = pgTable("users", {
   organizationId: uuid("organization_id")
     .notNull()
     .references(() => organizations.id),
+  medplumUserId: text("medplum_user_id"),
+  medplumPractitionerId: text("medplum_practitioner_id"),
   email: text("email").unique().notNull(),
   passwordHash: text("password_hash"),
   role: text("role").notNull(),
@@ -188,7 +197,13 @@ export const users = pgTable("users", {
   mfaEnabled: boolean("mfa_enabled").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (t) => [
+  index("users_org_idx").on(t.organizationId),
+  index("users_medplum_user_idx").on(t.medplumUserId),
+  index("users_medplum_practitioner_idx").on(t.medplumPractitionerId),
+  index("users_patient_idx").on(t.patientId),
+  index("users_provider_idx").on(t.providerId),
+]);
 
 // ── REFRESH TOKENS ────────────────────────────────────────────────────────────
 export const refreshTokens = pgTable("refresh_tokens", {

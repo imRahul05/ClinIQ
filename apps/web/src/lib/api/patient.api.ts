@@ -1,70 +1,23 @@
 import { http } from "./http";
+import type {
+  PatientProfileResponse,
+  LabsResponse,
+  MedicationsResponse,
+  ConditionsResponse,
+  CareGapsResponse,
+} from "@cliniq/api-spec";
 
-export interface PatientProfileResponse {
-  patient: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string;
-    email?: string;
-    phone?: string;
-    mrn?: string;
-    ohsScore?: string;
-    riskTier?: string;
-  };
-}
-
-export interface LabReadingItem {
-  id: string;
-  biomarker: string;
-  value: string;
-  unit?: string;
-  readingDate: string;
-  referenceRangeLow?: string;
-  referenceRangeHigh?: string;
-  interpretation?: string;
-}
-
-export interface LabsResponse {
-  readings: LabReadingItem[];
-}
-
-export interface MedicationItem {
-  id: string;
-  name: string;
-  dose?: string;
-  frequency?: string;
-  prescriber?: string;
-  status?: string;
-}
-
-export interface MedicationsResponse {
-  medications: MedicationItem[];
-}
-
-export interface ConditionItem {
-  id: string;
-  name: string;
-  icdCode?: string;
-  status?: string;
-}
-
-export interface ConditionsResponse {
-  conditions: ConditionItem[];
-}
-
-export interface CareGapItem {
-  id: string;
-  measure: string;
-  measureName: string;
-  hedisCode?: string;
-  dueDate?: string;
-  status: "open" | "closed";
-}
-
-export interface CareGapsResponse {
-  careGaps: CareGapItem[];
-}
+export type {
+  PatientProfileResponse,
+  LabReadingItem,
+  LabsResponse,
+  MedicationItem,
+  MedicationsResponse,
+  ConditionItem,
+  ConditionsResponse,
+  CareGapItem,
+  CareGapsResponse,
+} from "@cliniq/api-spec";
 
 export async function getPatientProfileApi(): Promise<PatientProfileResponse> {
   return http.get<PatientProfileResponse>("/api/patient/profile");
@@ -85,3 +38,4 @@ export async function getPatientConditionsApi(patientId?: string): Promise<Condi
 export async function getPatientCareGapsApi(patientId?: string): Promise<CareGapsResponse> {
   return http.get<CareGapsResponse>("/api/patient/care-gaps", { params: { patientId } });
 }
+

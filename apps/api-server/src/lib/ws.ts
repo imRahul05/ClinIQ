@@ -52,7 +52,12 @@ export function attachWebSocket(server: Server): WebSocketServer {
   return wss;
 }
 
-export function sendToUser(userId: string, event: string, payload: Record<string, unknown>): boolean {
+export type WebSocketPayload = Record<
+  string,
+  string | number | boolean | null | undefined | string[] | Record<string, string | number | boolean>
+>;
+
+export function sendToUser(userId: string, event: string, payload: WebSocketPayload): boolean {
   const client = clients.get(userId);
   if (client && client.ws.readyState === WebSocket.OPEN) {
     client.ws.send(JSON.stringify({ type: event, payload }));
@@ -61,7 +66,7 @@ export function sendToUser(userId: string, event: string, payload: Record<string
   return false;
 }
 
-export function broadcastToOrg(orgId: string, event: string, payload: Record<string, unknown>): void {
+export function broadcastToOrg(orgId: string, event: string, payload: WebSocketPayload): void {
   for (const client of clients.values()) {
     if (client.organizationId === orgId && client.ws.readyState === WebSocket.OPEN) {
       client.ws.send(JSON.stringify({ type: event, payload }));

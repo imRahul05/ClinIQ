@@ -1,15 +1,26 @@
+import axios, {
+  type AxiosInstance,
+  type AxiosResponse,
+  type AxiosError,
+  type InternalAxiosRequestConfig,
+} from "axios";
 import { clientConfig } from "../../config";
+import { medplum } from "../medplum";
+
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue = JsonPrimitive | { [key: string]: JsonValue } | JsonValue[];
+export type HttpBody = Record<string, JsonValue | undefined> | JsonValue | object;
 
 export interface RequestOptions {
-  headers?: Record<string, string>;
-  params?: Record<string, string | number | boolean | undefined>;
-  body?: Record<string, string | number | boolean | null | undefined | object>;
+  readonly headers?: Record<string, string>;
+  readonly params?: Record<string, string | number | boolean | undefined>;
+  readonly timeout?: number;
 }
 
 export interface ApiErrorResponse {
-  error: string;
-  message?: string;
-  statusCode: number;
+  readonly error: string;
+  readonly message?: string;
+  readonly statusCode: number;
 }
 
 export class ApiError extends Error {
@@ -21,86 +32,125 @@ export class ApiError extends Error {
     this.name = "ApiError";
     this.statusCode = payload.statusCode;
     this.errorPayload = payload;
+    Object.setPrototypeOf(this, ApiError.prototype);
   }
 }
 
-const API_BASE_URL = clientConfig.apiUrl;
-
-
-
-function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("cliniq_token");
+export interface ServerErrorPayload {
+  readonly error?: string;
+  readonly message?: string;
+  readonly statusCode?: number;
+  readonly details?: Record<string, JsonValue | undefined>;
 }
 
-export async function httpClient<T>(
-  endpoint: string,
-  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" = "GET",
-  options?: RequestOptions
-): Promise<T> {
-  const url = new URL(
-    endpoint.startsWith("http")
-      ? endpoint
-      : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`,
-    typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"
-  );
+const API_BASE_URL: string = clientConfig.apiUrl;
 
-  if (options?.params) {
-    Object.entries(options.params).forEach(([key, value]) => {
-      if (value !== undefined) {
-        url.searchParams.append(key, String(value));
-      }
-    });
-  }
-
-  const token = getAuthToken();
-  const headers: Record<string, string> = {
+/**
+ * Centralized Axios instance configured for ClinIQ operational services.
+ * Enforces zero usage of raw fetch() calls across the application.
+ */
+export const apiClient: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(options?.headers || {}),
-  };
+  },
+  timeout: 15000,
+});
 
-  const response = await fetch(url.toString(), {
-    method,
-    headers,
-    body: options?.body ? JSON.stringify(options.body) : undefined,
-  });
+/**
+ * Helper to retrieve the active Bearer token:
+ * First checks Medplum OAuth2/OIDC session, then falls back to localStorage.
+ */
+function getActiveAuthToken(): string | null {
+  return (
+    medplum.getAccessToken() ||
+    (typeof window !== "undefined" ? localStorage.getItem("cliniq_token") : null)
+  );
+}
 
-  if (!response.ok) {
-    let errorJson: { error?: string; message?: string } = {};
-    try {
-      errorJson = (await response.json()) as { error?: string; message?: string };
-    } catch {
-      errorJson = { error: response.statusText };
-    }
+/**
+ * Normalizes Axios error states (HTTP 4xx/5xx, network offline, setup failure)
+ * into a strongly-typed `ApiError`.
+ */
+export function normalizeAxiosError(error: AxiosError<ServerErrorPayload | string>): ApiError {
+  if (error.response) {
+    const { status, data } = error.response;
+    const isString = typeof data === "string";
+    const errorData = typeof data === "object" && data !== null ? data : undefined;
 
-    throw new ApiError({
-      error: errorJson.error || "HTTP Error",
-      message: errorJson.message || `Request failed with status ${response.status}`,
-      statusCode: response.status,
+    return new ApiError({
+      error: isString ? data : errorData?.error || "HTTP Error",
+      message: isString ? data : errorData?.message || `Request failed with status ${status}`,
+      statusCode: status,
     });
   }
 
-  return (await response.json()) as T;
+  if (error.request) {
+    return new ApiError({
+      error: "NetworkError",
+      message:
+        error.message ||
+        "ClinIQ API server unreachable. Verify backend server is running on port 4000.",
+      statusCode: 503,
+    });
+  }
+
+  return new ApiError({
+    error: error.name || "ApiError",
+    message: error.message || "An unexpected error occurred during HTTP transaction",
+    statusCode: 500,
+  });
 }
 
-export const http = {
-  get: <T>(endpoint: string, options?: RequestOptions) => httpClient<T>(endpoint, "GET", options),
-  post: <T>(
-    endpoint: string,
-    body?: RequestOptions["body"],
-    options?: Omit<RequestOptions, "body">
-  ) => httpClient<T>(endpoint, "POST", { ...options, body }),
-  put: <T>(
-    endpoint: string,
-    body?: RequestOptions["body"],
-    options?: Omit<RequestOptions, "body">
-  ) => httpClient<T>(endpoint, "PUT", { ...options, body }),
-  patch: <T>(
-    endpoint: string,
-    body?: RequestOptions["body"],
-    options?: Omit<RequestOptions, "body">
-  ) => httpClient<T>(endpoint, "PATCH", { ...options, body }),
-  delete: <T>(endpoint: string, options?: RequestOptions) =>
-    httpClient<T>(endpoint, "DELETE", options),
+apiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+    const token = getActiveAuthToken();
+    if (token) {
+      config.headers.set("Authorization", `Bearer ${token}`);
+    }
+    return config;
+  },
+  (error: AxiosError): Promise<never> =>
+    Promise.reject(
+      new ApiError({
+        error: error.name || "RequestConfigurationError",
+        message: error.message || "Failed to configure outgoing HTTP request",
+        statusCode: 400,
+      })
+    )
+);
+
+apiClient.interceptors.response.use(
+  (response: AxiosResponse): AxiosResponse => response,
+  (error: AxiosError<ServerErrorPayload | string>): Promise<never> =>
+    Promise.reject(normalizeAxiosError(error))
+);
+
+async function unwrap<T>(promise: Promise<AxiosResponse<T>>): Promise<T> {
+  const response = await promise;
+  return response.data;
+}
+
+export interface HttpService {
+  get<T>(endpoint: string, options?: RequestOptions): Promise<T>;
+  post<T = void, B = HttpBody>(endpoint: string, data?: B, options?: RequestOptions): Promise<T>;
+  put<T = void, B = HttpBody>(endpoint: string, data?: B, options?: RequestOptions): Promise<T>;
+  patch<T = void, B = HttpBody>(endpoint: string, data?: B, options?: RequestOptions): Promise<T>;
+  delete<T = void>(endpoint: string, options?: RequestOptions): Promise<T>;
+}
+
+/**
+ * Strongly-typed HTTP convenience methods for ClinIQ operational API modules.
+ */
+export const http: HttpService = {
+  get: <T>(endpoint: string, options?: RequestOptions) =>
+    unwrap(apiClient.get<T>(endpoint, options)),
+  post: <T = void, B = HttpBody>(endpoint: string, data?: B, options?: RequestOptions) =>
+    unwrap(apiClient.post<T>(endpoint, data, options)),
+  put: <T = void, B = HttpBody>(endpoint: string, data?: B, options?: RequestOptions) =>
+    unwrap(apiClient.put<T>(endpoint, data, options)),
+  patch: <T = void, B = HttpBody>(endpoint: string, data?: B, options?: RequestOptions) =>
+    unwrap(apiClient.patch<T>(endpoint, data, options)),
+  delete: <T = void>(endpoint: string, options?: RequestOptions) =>
+    unwrap(apiClient.delete<T>(endpoint, options)),
 };

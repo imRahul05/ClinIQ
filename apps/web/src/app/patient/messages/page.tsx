@@ -11,16 +11,9 @@ import {
   Badge,
 } from "@cliniq/ui";
 import { Send, Paperclip, ShieldCheck } from "lucide-react";
+import type { PatientMessageItem } from "@cliniq/api-spec";
 
-interface Message {
-  id: string;
-  sender: "patient" | "care_team";
-  senderName: string;
-  content: string;
-  timestamp: string;
-}
-
-const INITIAL_MESSAGES: Message[] = [
+const INITIAL_MESSAGES: PatientMessageItem[] = [
   {
     id: "msg-1",
     sender: "care_team",
@@ -45,12 +38,12 @@ const INITIAL_MESSAGES: Message[] = [
 ];
 
 export default function PatientMessagesPage() {
-  const [messages, setMessages] = React.useState<Message[]>(INITIAL_MESSAGES);
+  const [messages, setMessages] = React.useState<PatientMessageItem[]>(INITIAL_MESSAGES);
   const [input, setInput] = React.useState("");
 
   const handleSend = () => {
     if (!input.trim()) return;
-    const newMsg: Message = {
+    const newMsg: PatientMessageItem = {
       id: `msg-${Date.now()}`,
       sender: "patient",
       senderName: "Sarah Johnson",

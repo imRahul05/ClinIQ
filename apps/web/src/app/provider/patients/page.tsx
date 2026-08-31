@@ -9,21 +9,9 @@ import {
   DataTable,
 } from "@cliniq/ui";
 import { ArrowRight, UserPlus } from "lucide-react";
+import type { PatientRosterItem } from "@cliniq/api-spec";
 
-interface PatientRecord {
-  id: string;
-  name: string;
-  mrn: string;
-  dob: string;
-  gender: string;
-  phone: string;
-  email: string;
-  employer: string;
-  riskTier: "low" | "moderate" | "high";
-  [key: string]: string;
-}
-
-const PATIENTS_ROSTER: PatientRecord[] = [
+const PATIENTS_ROSTER: PatientRosterItem[] = [
   { id: "p-1", name: "Sarah Johnson", mrn: "948204", dob: "1988-04-12", gender: "Female", phone: "(555) 234-5678", email: "sarah.j@example.com", employer: "Apex Global Tech", riskTier: "low" },
   { id: "p-2", name: "Marcus Miller", mrn: "830219", dob: "1972-11-03", gender: "Male", phone: "(555) 876-5432", email: "marcus.m@example.com", employer: "Apex Global Tech", riskTier: "high" },
   { id: "p-3", name: "David Vance", mrn: "419820", dob: "1965-06-21", gender: "Male", phone: "(555) 432-1098", email: "david.v@example.com", employer: "Summit Health Logistics", riskTier: "moderate" },
@@ -54,7 +42,7 @@ export default function PatientsRosterPage() {
 
       <Card notch className="bg-[var(--paper-raised)]">
         <CardContent className="pt-6">
-          <DataTable<PatientRecord>
+          <DataTable<PatientRosterItem>
             data={PATIENTS_ROSTER}
             keyExtractor={(item) => item.id}
             searchPlaceholder="Search by Name, MRN, Employer Group, or Phone..."

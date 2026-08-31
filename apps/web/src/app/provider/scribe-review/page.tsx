@@ -13,9 +13,10 @@ import {
 } from "@cliniq/ui";
 import { FileCheck, CheckCircle2, ShieldCheck } from "lucide-react";
 import { signEncounterApi } from "@/lib/api/calls.api";
+import type { ScribeSoapNote } from "@cliniq/api-spec";
 
 export default function ScribeReviewPage() {
-  const [soap, setSoap] = React.useState({
+  const [soap, setSoap] = React.useState<ScribeSoapNote>({
     subjective: "Patient presented for virtual follow-up. Blood glucose stable averaging 92-95 mg/dL on daily Metformin 500mg. Lisinopril 10mg taken regularly with no side effects or dizziness reported.",
     objective: "Vital signs: BP 118/78 mmHg, HR 72 bpm, Fasting Glucose 92 mg/dL. Alert and oriented x3, pleasant and in no acute distress.",
     assessment: "1. Type 2 Diabetes Mellitus without complications (ICD-10: E11.9) - well controlled.\n2. Essential Primary Hypertension (ICD-10: I10) - normotensive.",

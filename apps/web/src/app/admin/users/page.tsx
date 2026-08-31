@@ -8,19 +8,9 @@ import {
   Button,
 } from "@cliniq/ui";
 import { UserPlus, ShieldCheck } from "lucide-react";
+import type { AdminUserAccountItem } from "@cliniq/api-spec";
 
-interface UserAccount {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  npi: string;
-  npiVerified: boolean;
-  status: string;
-  [key: string]: string | boolean;
-}
-
-const DEMO_USERS: UserAccount[] = [
+const DEMO_USERS: AdminUserAccountItem[] = [
   { id: "u-1", name: "Elena Rostova, RN", email: "nurse.elena@apexhealthiq.demo", role: "nurse", npi: "1948201948", npiVerified: true, status: "Active Verified" },
   { id: "u-2", name: "Dr. Robert Chen, MD", email: "dr.chen@apexhealthiq.demo", role: "physician", npi: "1820491029", npiVerified: true, status: "Active Verified" },
   { id: "u-3", name: "Sarah Johnson", email: "sarah.johnson@apexhealthiq.demo", role: "patient", npi: "N/A", npiVerified: false, status: "Active Verified" },
@@ -51,7 +41,7 @@ export default function AdminUsersPage() {
 
       <Card notch className="bg-[var(--paper-raised)]">
         <CardContent className="pt-6">
-          <DataTable<UserAccount>
+          <DataTable<AdminUserAccountItem>
             data={DEMO_USERS}
             keyExtractor={(item) => item.id}
             searchPlaceholder="Search staff by name, email, or system role..."

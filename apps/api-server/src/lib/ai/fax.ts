@@ -1,20 +1,17 @@
 import { generateObject } from "ai";
-import { z } from "zod";
+import {
+  FaxClassificationResultSchema,
+  type FaxClassificationResult,
+} from "@cliniq/api-spec";
 import { AI_TASK_ROUTING } from "../../config/ai.config";
 import { resolveModel } from "./client";
 import { logger } from "../logger";
 
-export const FaxClassificationResultSchema = z.object({
-  classification: z.enum([
-    "Discharge Summary",
-    "Lab Requisition",
-    "Prescription Referral",
-    "General Clinical Document",
-  ]),
-  extractedEntities: z.record(z.string()).describe("Key clinical entities such as patientName, mrn, referringPhysician, or date"),
-});
+export {
+  FaxClassificationResultSchema,
+  type FaxClassificationResult,
+};
 
-export type FaxClassificationResult = z.infer<typeof FaxClassificationResultSchema>;
 
 /**
  * Classifies inbound clinical fax OCR text and extracts key entities.

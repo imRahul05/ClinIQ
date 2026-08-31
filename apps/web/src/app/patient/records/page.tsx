@@ -13,37 +13,11 @@ import {
   Button,
 } from "@cliniq/ui";
 import { Pill, Activity, Syringe, FileText, Download } from "lucide-react";
-
-interface DemoLab {
-  id: string;
-  biomarker: string;
-  code: string;
-  value: string;
-  unit: string;
-  range: string;
-  status: string;
-  date: string;
-  [key: string]: string;
-}
-
-interface DemoMed {
-  id: string;
-  name: string;
-  dose: string;
-  frequency: string;
-  prescriber: string;
-  status: string;
-  refillDue: string;
-}
-
-interface DemoVaccine {
-  id: string;
-  vaccine: string;
-  date: string;
-  lot: string;
-  clinic: string;
-  [key: string]: string;
-}
+import type {
+  DiagnosticLabRecord,
+  ActiveMedicationRecord,
+  ImmunizationRecord,
+} from "@cliniq/api-spec";
 
 const DEMO_BP_DATA = [
   { date: "May 10", systolic: 128, diastolic: 82 },
@@ -53,19 +27,19 @@ const DEMO_BP_DATA = [
   { date: "Aug 29", systolic: 116, diastolic: 76 },
 ];
 
-const DEMO_LABS: DemoLab[] = [
+const DEMO_LABS: DiagnosticLabRecord[] = [
   { id: "lab-1", biomarker: "Fasting Blood Glucose", code: "2339-0", value: "92", unit: "mg/dL", range: "70 - 99", status: "Proven Normal", date: "Aug 15, 2026" },
   { id: "lab-2", biomarker: "Hemoglobin A1c", code: "4548-4", value: "5.4", unit: "%", range: "4.0 - 5.6", status: "Proven Normal", date: "Aug 15, 2026" },
   { id: "lab-3", biomarker: "Total Cholesterol", code: "2093-3", value: "185", unit: "mg/dL", range: "125 - 200", status: "Proven Normal", date: "Aug 15, 2026" },
   { id: "lab-4", biomarker: "Serum Creatinine (eGFR)", code: "2160-0", value: "0.95", unit: "mg/dL", range: "0.6 - 1.2", status: "Proven Normal", date: "Aug 15, 2026" },
 ];
 
-const DEMO_MEDS: DemoMed[] = [
+const DEMO_MEDS: ActiveMedicationRecord[] = [
   { id: "med-1", name: "Metformin HCl", dose: "500 mg", frequency: "Twice daily with meals", prescriber: "Dr. Robert Chen, MD", status: "Active Verified", refillDue: "Sep 15, 2026" },
   { id: "med-2", name: "Lisinopril", dose: "10 mg", frequency: "Once daily in morning", prescriber: "Dr. Robert Chen, MD", status: "Active Verified", refillDue: "Oct 01, 2026" },
 ];
 
-const DEMO_VACCINES: DemoVaccine[] = [
+const DEMO_VACCINES: ImmunizationRecord[] = [
   { id: "vac-1", vaccine: "Influenza (Flu) Annual", date: "Oct 12, 2025", lot: "FL98421", clinic: "Memorial Health FHIR" },
   { id: "vac-2", vaccine: "COVID-19 Updated Booster (mRNA)", date: "Nov 04, 2025", lot: "CV44910", clinic: "Memorial Health FHIR" },
   { id: "vac-3", vaccine: "Tetanus, Diphtheria, Pertussis (Tdap)", date: "Jun 18, 2022", lot: "TD10982", clinic: "Care Clinic FHIR" },
@@ -143,7 +117,7 @@ export default function PatientRecordsPage() {
 
       {/* Tab 2: Lab Results */}
       {tab === "labs" && (
-        <DataTable<DemoLab>
+        <DataTable<DiagnosticLabRecord>
           data={DEMO_LABS}
           keyExtractor={(item) => item.id}
           columns={[
@@ -182,7 +156,7 @@ export default function PatientRecordsPage() {
 
       {/* Tab 4: Vaccines */}
       {tab === "vaccines" && (
-        <DataTable<DemoVaccine>
+        <DataTable<ImmunizationRecord>
           data={DEMO_VACCINES}
           keyExtractor={(item) => item.id}
           columns={[

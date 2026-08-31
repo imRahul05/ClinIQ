@@ -1,35 +1,16 @@
 import { http } from "./http";
+import type {
+  WorklistResponse,
+  PatientChartResponse,
+  ProviderAvailabilityResponse,
+} from "@cliniq/api-spec";
 
-export interface WorklistPatient {
-  id: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  ohsScore?: string;
-  riskTier?: string;
-  hasRecentErVisit?: boolean;
-}
-
-export interface WorklistResponse {
-  patients: WorklistPatient[];
-}
-
-export interface PatientChartResponse {
-  patient: WorklistPatient;
-  encounters: Array<{
-    id: string;
-    type: string;
-    summary?: string;
-    soapNote?: { subjective: string; objective: string; assessment: string; plan: string };
-    createdAt: string;
-  }>;
-  careGaps: Array<{
-    id: string;
-    measureName: string;
-    status: string;
-    dueDate?: string;
-  }>;
-}
+export type {
+  WorklistPatient,
+  WorklistResponse,
+  PatientChartResponse,
+  ProviderAvailabilityResponse,
+} from "@cliniq/api-spec";
 
 export async function getProviderWorklistApi(): Promise<WorklistResponse> {
   return http.get<WorklistResponse>("/api/provider/worklist");
@@ -39,6 +20,13 @@ export async function getPatientChartApi(patientId: string): Promise<PatientChar
   return http.get<PatientChartResponse>(`/api/provider/chart/${patientId}`);
 }
 
-export async function setProviderAvailabilityApi(isAvailable: boolean, status?: string): Promise<{ availability: { isAvailable: boolean; status: string } }> {
-  return http.post("/api/provider/availability", { isAvailable, status });
+export async function setProviderAvailabilityApi(
+  isAvailable: boolean,
+  status?: string
+): Promise<ProviderAvailabilityResponse> {
+  return http.post<ProviderAvailabilityResponse>("/api/provider/availability", {
+    isAvailable,
+    status,
+  });
 }
+

@@ -4,6 +4,7 @@ import axios, {
   type AxiosError,
   type InternalAxiosRequestConfig,
 } from "axios";
+import type { PaginatedResponse, PaginationMeta } from "@cliniq/api-spec";
 import { clientConfig } from "../../config";
 import { medplum } from "../medplum";
 
@@ -13,31 +14,41 @@ export type HttpBody = Record<string, JsonValue | undefined> | JsonValue | objec
 
 export interface RequestOptions {
   readonly headers?: Record<string, string>;
-  readonly params?: Record<string, string | number | boolean | undefined>;
+  readonly params?: Record<string, string | number | boolean | undefined | null> | object;
   readonly timeout?: number;
 }
 
 export interface ApiErrorResponse {
   readonly error: string;
+  readonly code?: string;
   readonly message?: string;
   readonly statusCode: number;
+  readonly details?: Record<string, unknown>;
 }
 
 export class ApiError extends Error {
   public readonly statusCode: number;
+  public readonly code?: string;
   public readonly errorPayload: ApiErrorResponse;
 
   constructor(payload: ApiErrorResponse) {
     super(payload.message || payload.error || "An API error occurred");
     this.name = "ApiError";
     this.statusCode = payload.statusCode;
+    this.code = payload.code;
     this.errorPayload = payload;
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 }
 
+export interface ServerStructuredError {
+  readonly code?: string;
+  readonly message?: string;
+  readonly details?: Record<string, unknown>;
+}
+
 export interface ServerErrorPayload {
-  readonly error?: string;
+  readonly error?: string | ServerStructuredError;
   readonly message?: string;
   readonly statusCode?: number;
   readonly details?: Record<string, JsonValue | undefined>;
@@ -78,16 +89,40 @@ export function normalizeAxiosError(error: AxiosError<ServerErrorPayload | strin
     const isString = typeof data === "string";
     const errorData = typeof data === "object" && data !== null ? data : undefined;
 
+    let errorName = "HTTP Error";
+    let errorMessage = `Request failed with status ${status}`;
+    let errorCode: string | undefined;
+    let errorDetails: Record<string, unknown> | undefined;
+
+    if (isString) {
+      errorName = data;
+      errorMessage = data;
+    } else if (errorData) {
+      if (typeof errorData.error === "object" && errorData.error !== null) {
+        const structured = errorData.error as ServerStructuredError;
+        errorCode = structured.code;
+        errorName = structured.code || "API_ERROR";
+        errorMessage = structured.message || errorData.message || errorMessage;
+        errorDetails = structured.details;
+      } else if (typeof errorData.error === "string") {
+        errorName = errorData.error;
+        errorMessage = errorData.message || errorData.error;
+      }
+    }
+
     return new ApiError({
-      error: isString ? data : errorData?.error || "HTTP Error",
-      message: isString ? data : errorData?.message || `Request failed with status ${status}`,
+      error: errorName,
+      code: errorCode,
+      message: errorMessage,
       statusCode: status,
+      details: errorDetails,
     });
   }
 
   if (error.request) {
     return new ApiError({
       error: "NetworkError",
+      code: "NETWORK_ERROR",
       message:
         error.message ||
         "ClinIQ API server unreachable. Verify backend server is running on port 4000.",
@@ -97,6 +132,7 @@ export function normalizeAxiosError(error: AxiosError<ServerErrorPayload | strin
 
   return new ApiError({
     error: error.name || "ApiError",
+    code: "UNEXPECTED_ERROR",
     message: error.message || "An unexpected error occurred during HTTP transaction",
     statusCode: 500,
   });

@@ -12,8 +12,14 @@ export type {
   ProviderAvailabilityResponse,
 } from "@cliniq/api-spec";
 
-export async function getProviderWorklistApi(): Promise<WorklistResponse> {
-  return http.get<WorklistResponse>("/api/provider/worklist");
+export interface WorklistQueryParams {
+  page?: number;
+  pageSize?: number;
+  [key: string]: string | number | boolean | undefined;
+}
+
+export async function getProviderWorklistApi(params?: WorklistQueryParams): Promise<WorklistResponse> {
+  return http.get<WorklistResponse>("/api/provider/worklist", { params });
 }
 
 export async function getPatientChartApi(patientId: string): Promise<PatientChartResponse> {
@@ -24,9 +30,8 @@ export async function setProviderAvailabilityApi(
   isAvailable: boolean,
   status?: string
 ): Promise<ProviderAvailabilityResponse> {
-  return http.post<ProviderAvailabilityResponse>("/api/provider/availability", {
+  return http.put<ProviderAvailabilityResponse>("/api/provider/availability", {
     isAvailable,
     status,
   });
 }
-

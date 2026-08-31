@@ -1,6 +1,81 @@
 import { z } from "zod";
 
 // ============================================================================
+// ERROR ENVELOPE & PROTOCOL SCHEMAS
+// ============================================================================
+
+/**
+ * Standard machine-readable error codes across ClinIQ API services.
+ */
+export const APIErrorCodeSchema = z.enum([
+  "VALIDATION_ERROR",
+  "AUTHENTICATION_REQUIRED",
+  "INSUFFICIENT_PERMISSIONS",
+  "RESOURCE_NOT_FOUND",
+  "CONFLICT",
+  "INTERNAL_SERVER_ERROR",
+  "BAD_REQUEST",
+]);
+export type APIErrorCode = z.infer<typeof APIErrorCodeSchema>;
+
+/**
+ * Machine- and human-readable error payload.
+ */
+export const APIErrorDetailSchema = z.object({
+  code: APIErrorCodeSchema.or(z.string()),
+  message: z.string(),
+  details: z.record(z.unknown()).optional(),
+});
+export type APIErrorDetail = z.infer<typeof APIErrorDetailSchema>;
+export interface IAPIErrorDetail extends APIErrorDetail {}
+
+/**
+ * Standardized top-level API error envelope.
+ */
+export const APIErrorEnvelopeSchema = z.object({
+  error: APIErrorDetailSchema,
+});
+export type APIErrorEnvelope = z.infer<typeof APIErrorEnvelopeSchema>;
+export interface IAPIErrorEnvelope extends APIErrorEnvelope {}
+
+// ============================================================================
+// PAGINATION DOMAIN SCHEMAS
+// ============================================================================
+
+/**
+ * Standard query parameters for list and search endpoints.
+ */
+export const PaginationQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  pageSize: z.coerce.number().int().positive().max(100).default(20),
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+});
+export type PaginationQuery = z.infer<typeof PaginationQuerySchema>;
+export interface IPaginationQuery extends PaginationQuery {}
+
+/**
+ * Standard pagination metadata attached to paginated response payloads.
+ */
+export const PaginationMetaSchema = z.object({
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+  totalItems: z.number().int().nonnegative(),
+  totalPages: z.number().int().nonnegative(),
+  hasNextPage: z.boolean(),
+});
+export type PaginationMeta = z.infer<typeof PaginationMetaSchema>;
+export interface IPaginationMeta extends PaginationMeta {}
+
+/**
+ * TypeScript interface representing a standardized paginated response.
+ */
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: PaginationMeta;
+}
+
+// ============================================================================
 // AUTH & CLAIMS DOMAIN SCHEMAS
 // ============================================================================
 
@@ -337,10 +412,21 @@ export type CareGapsResponse = z.infer<typeof CareGapsResponseSchema>;
 export interface ICareGapsResponse extends CareGapsResponse {}
 
 /**
- * Payload to satisfy and close an open care gap.
+ * Payload to update or close a care gap via PATCH /api/care-gaps/:id.
+ */
+export const UpdateCareGapSchema = z.object({
+  status: z.enum(["open", "closed"]).default("closed"),
+  evidence: z.string().min(3, "Clinical closure evidence is required"),
+  closedEncounterId: z.string().uuid().optional(),
+});
+export type UpdateCareGapInput = z.infer<typeof UpdateCareGapSchema>;
+export interface IUpdateCareGapInput extends UpdateCareGapInput {}
+
+/**
+ * Payload to satisfy and close an open care gap (Legacy / Alias).
  */
 export const CloseCareGapSchema = z.object({
-  careGapId: z.string().uuid("Valid Care Gap UUID is required"),
+  careGapId: z.string().uuid("Valid Care Gap UUID is required").optional(),
   evidence: z.string().min(3, "Clinical closure evidence is required"),
   closedEncounterId: z.string().uuid().optional(),
 });
@@ -692,14 +778,21 @@ export type RingResult = z.infer<typeof RingResultSchema>;
 export interface IRingResult extends RingResult {}
 
 /**
- * Payload to initiate an inbound or outbound telehealth call session.
+ * Payload to initiate or create a telehealth call session via POST /api/calls.
  */
-export const InitiateCallSchema = z.object({
+export const CreateCallSessionSchema = z.object({
   patientId: z.string().uuid("Valid Patient UUID is required"),
   callType: z.enum(["video", "audio"]).default("video"),
   reason: z.string().optional(),
   urgency: z.enum(["low", "medium", "high"]).default("medium"),
 });
+export type CreateCallSessionInput = z.infer<typeof CreateCallSessionSchema>;
+export interface ICreateCallSessionInput extends CreateCallSessionInput {}
+
+/**
+ * Payload to initiate an inbound or outbound telehealth call session (Alias).
+ */
+export const InitiateCallSchema = CreateCallSessionSchema;
 export type InitiateCallInput = z.infer<typeof InitiateCallSchema>;
 export interface IInitiateCallInput extends InitiateCallInput {}
 
@@ -711,24 +804,47 @@ export type InitiateCallPayload = z.infer<typeof InitiateCallPayloadSchema>;
 export interface IInitiateCallPayload extends InitiateCallPayload {}
 
 /**
- * Payload for answering a ringing call session.
+ * Payload for updating an active call session (answering, completing, modifying) via PATCH /api/calls/:id.
+ */
+export const UpdateCallSessionSchema = z.object({
+  status: z.enum(["ringing", "in_progress", "completed", "cancelled"]).optional(),
+  nurseId: z.string().uuid().optional(),
+  durationSeconds: z.number().int().nonnegative().optional(),
+  transcriptText: z.string().optional(),
+  reason: z.string().optional(),
+});
+export type UpdateCallSessionInput = z.infer<typeof UpdateCallSessionSchema>;
+export interface IUpdateCallSessionInput extends UpdateCallSessionInput {}
+
+/**
+ * Payload for answering a ringing call session (Legacy / Alias).
  */
 export const AnswerCallSchema = z.object({
-  callSessionId: z.string().uuid("Valid Call Session UUID is required"),
+  callSessionId: z.string().uuid("Valid Call Session UUID is required").optional(),
 });
 export type AnswerCallInput = z.infer<typeof AnswerCallSchema>;
 export interface IAnswerCallInput extends AnswerCallInput {}
 
 /**
- * Payload for ending an active call session.
+ * Payload for ending an active call session (Legacy / Alias).
  */
 export const EndCallSchema = z.object({
-  callSessionId: z.string().uuid("Valid Call Session UUID is required"),
+  callSessionId: z.string().uuid("Valid Call Session UUID is required").optional(),
   durationSeconds: z.number().int().nonnegative().default(0),
   transcriptText: z.string().optional(),
 });
 export type EndCallInput = z.infer<typeof EndCallSchema>;
 export interface IEndCallInput extends EndCallInput {}
+
+/**
+ * Inbound WebSocket authentication message format.
+ */
+export const WebSocketAuthMessageSchema = z.object({
+  type: z.literal("auth"),
+  token: z.string().min(1, "Bearer token is required for WebSocket authentication"),
+});
+export type WebSocketAuthMessage = z.infer<typeof WebSocketAuthMessageSchema>;
+export interface IWebSocketAuthMessage extends WebSocketAuthMessage {}
 
 /**
  * Detailed representation of an active or concluded telehealth call session.
@@ -771,7 +887,7 @@ export interface ICallSessionResponse extends CallSessionResponse {}
  * Patient context supplied during AI clinical scribe SOAP note synthesis.
  */
 export const ScribePatientContextSchema = z.object({
-  patientId: z.string().uuid().optional(),
+  patientId: z.string().optional(),
   age: z.number().int().positive().optional(),
   gender: z.string().optional(),
   activeConditions: z.array(z.string()).optional(),
@@ -780,14 +896,21 @@ export type ScribePatientContext = z.infer<typeof ScribePatientContextSchema>;
 export interface IScribePatientContext extends ScribePatientContext {}
 
 /**
- * Parameters for generating structured clinical SOAP notes from encounter audio transcripts.
+ * Parameters for creating or generating structured clinical SOAP notes via POST /api/scribe/notes.
  */
-export const GenerateSoapNoteSchema = z.object({
+export const CreateSoapNoteSchema = z.object({
   callSessionId: z.string().uuid().optional(),
   encounterId: z.string().uuid().optional(),
   transcript: z.string().min(10, "Encounter transcript must be at least 10 characters"),
   patientContext: ScribePatientContextSchema.optional(),
 });
+export type CreateSoapNoteInput = z.infer<typeof CreateSoapNoteSchema>;
+export interface ICreateSoapNoteInput extends CreateSoapNoteInput {}
+
+/**
+ * Parameters for generating structured clinical SOAP notes from encounter audio transcripts (Alias).
+ */
+export const GenerateSoapNoteSchema = CreateSoapNoteSchema;
 export type GenerateSoapNoteInput = z.infer<typeof GenerateSoapNoteSchema>;
 export interface IGenerateSoapNoteInput extends GenerateSoapNoteInput {}
 
@@ -850,13 +973,20 @@ export type FaxClassificationResult = z.infer<typeof FaxClassificationResultSche
 export interface IFaxClassificationResult extends FaxClassificationResult {}
 
 /**
- * Payload to ingest an inbound digital fax document for OCR parsing and AI triage.
+ * Payload to create or ingest an inbound digital fax document via POST /api/fax.
  */
-export const IngestFaxSchema = z.object({
+export const CreateFaxSchema = z.object({
   senderNumber: z.string().optional(),
   documentBase64: z.string().min(10, "Base64 document content is required"),
   fileName: z.string().optional(),
 });
+export type CreateFaxInput = z.infer<typeof CreateFaxSchema>;
+export interface ICreateFaxInput extends CreateFaxInput {}
+
+/**
+ * Payload to ingest an inbound digital fax document for OCR parsing and AI triage (Alias).
+ */
+export const IngestFaxSchema = CreateFaxSchema;
 export type IngestFaxInput = z.infer<typeof IngestFaxSchema>;
 export interface IIngestFaxInput extends IngestFaxInput {}
 

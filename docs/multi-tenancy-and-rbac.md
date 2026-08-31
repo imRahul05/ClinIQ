@@ -54,21 +54,28 @@ ClinIQ defines four standard personas with distinct authorization boundaries:
 
 ## 3. Middleware Enforcement (`apps/api-server/src/middleware/auth.ts`)
 
-Authorization is enforced at the HTTP boundary via Express middleware:
+Authorization is enforced at the HTTP boundary via Express middleware with **Medplum JWKS RS256/ES256 cryptographic verification** and live FHIR profile mapping:
 
 ```typescript
-import { requireRole, requireOrgTenancy } from "@/middleware/auth";
+import { authMiddleware, requireRole, orgId } from "../middleware/auth";
 
 // Only authenticated nurses or physicians within the tenant can access the clinical chart
 router.get(
   "/chart/:patientId",
-  requireRole(["nurse", "physician"]),
-  requireOrgTenancy,
+  authMiddleware,
+  requireRole("nurse", "physician"),
   async (req, res) => {
+    const currentOrgId = orgId(req);
     // Handler automatically scoped to req.user.organizationId
   }
 );
 ```
+
+### Key Security Mechanics:
+1. **Asymmetric JWKS Verification**: `authMiddleware` verifies the Medplum Bearer access token signature against `/.well-known/jwks.json` using `jose`.
+2. **Dynamic Profile Resolution**: Automatically resolves the live `Practitioner` or `Patient` FHIR resource from Medplum to extract `providerId`, `patientId`, and role.
+3. **Database Context Enrichment**: Enriches the user claims with local PostgreSQL `employerId` and `organizationId` mappings.
+4. **Zero-Trust Route Guards**: `requireRole` and `requireAdmin` verify the resolved claims, blocking unauthorized requests with `403 Forbidden`.
 
 ---
 

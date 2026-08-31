@@ -15,6 +15,7 @@ Welcome to the official developer and architecture documentation for **ClinIQ**,
 | [**Database & Schemas (`packages/db`)**](./database.md) | PostgreSQL, Drizzle ORM, tenancy models, telephony buffers, ER avoidance ledgers, and audit logs. |
 | [**FHIR R4 & Medplum Integration (`packages/fhir-core`)**](./fhir-medplum.md) | Upstream Medplum client SDK, LOINC clinical codes, questionnaires, and SMART Health Links. |
 | [**Multi-Tenancy & Access Control (RBAC)**](./multi-tenancy-and-rbac.md) | Organization & Employer dual tenancy, role matrix, permission checking, and how to customize auth. |
+| [**Auth & RBAC Architecture Options**](./auth-and-rbac-architecture-options.md) | In-depth trade-off analysis of Option 3 Hybrid Architecture vs. custom in-house auth & pure Medplum monolith. |
 | [**Graph-Based Knowledge System (Graphify)**](./knowledge-graph-graphify.md) | Codebase knowledge graph, AST semantic indexing at `graphify-out/`, and relationship exploration. |
 | [**Extending the Platform (Developer Guide)**](./extending-the-platform.md) | Step-by-step tutorials for adding new portals, API routes, FHIR resources, and AI tools. |
 

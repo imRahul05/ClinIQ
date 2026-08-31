@@ -69,35 +69,29 @@ ClinIQ uses **Base UI** (`@base-ui-components/react`) as its unstyled accessible
 
 ---
 
-## 3. Centralized HTTP Client Pattern
+## 3. Centralized Axios HTTP Client Pattern
 
-Direct `fetch` calls in components are strictly forbidden. All communication routes through `apps/web/src/lib/api/http.ts`:
+Direct `fetch` calls in components are strictly forbidden. All communication routes through `apps/web/src/lib/api/http.ts` using a hardened **Axios** instance with interceptors:
 
 ```typescript
-import { httpClient } from "@/lib/api/http";
+import { http } from "@/lib/api/http";
+import type { LabsResponse } from "@cliniq/api-spec";
 
-export interface LabResult {
-  id: string;
-  biomarker: string;
-  value: string;
-  unit: string;
-}
-
-export async function fetchPatientLabsApi(patientId: string): Promise<LabResult[]> {
-  const response = await httpClient.get<LabResult[]>(`/api/patient/${patientId}/labs`);
-  return response.data;
+export async function fetchPatientLabsApi(patientId: string): Promise<LabsResponse> {
+  return http.get<LabsResponse>(`/api/patient/labs-and-vitals?patientId=${patientId}`);
 }
 ```
 
 ### Key Features:
-- Automatic JWT Bearer token injection from `localStorage`.
-- Unified error handling with custom `ApiError` payloads.
-- Strict type resolution on request and response bodies (zero `any` types).
+- **Automatic Token Interceptor**: Automatically attaches the active Medplum SMART-on-FHIR Bearer token (`medplum.getAccessToken()`) to every outgoing request.
+- **Normalized Error Handling**: Automatically transforms HTTP 4xx/5xx and network errors into strongly-typed `ApiError` instances.
+- **Canonical Monorepo Schemas**: All API modules and UI components import response models directly from `@cliniq/api-spec` rather than defining ad-hoc local interfaces.
+- **Strict Type Safety**: Zero `any` and zero `unknown` types across all API functions.
 
 ---
 
 ## 4. State Management Strategy
 
 - **Server Cache**: TanStack React Query (`@tanstack/react-query`) handles query caching, background refetching, and mutation invalidation.
-- **FHIR Resource State**: `@medplum/react-hooks` (`useMedplum`, `useResource`, `useSearch`) for direct FHIR standard operations.
+- **FHIR Resource & Auth State**: `@medplum/react-hooks` (`useMedplum`, `useResource`, `useSearch`) for reactive authentication, profile context, and direct FHIR standard operations.
 - **Realtime State**: Native WebSockets for incoming call notifications and live audio transcript streaming.

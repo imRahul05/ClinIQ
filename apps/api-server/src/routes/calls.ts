@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { authMiddleware } from "../middleware/auth";
 import {
   createCallController,
   getCallController,
@@ -7,7 +6,6 @@ import {
 } from "../controllers/calls.controller";
 
 const router = Router();
-router.use(authMiddleware);
 
 router.post("/", createCallController);
 router.get("/:id", getCallController);

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware, requireRole } from "../middleware/auth";
+import { requireRole } from "../middleware/auth";
 import {
   getEmployerOverviewController,
   getEmployerSavingsLedgerController,
@@ -7,7 +7,6 @@ import {
 } from "../controllers/employer.controller";
 
 const router = Router();
-router.use(authMiddleware);
 router.use(requireRole("employer_admin", "admin"));
 
 router.get("/overview", getEmployerOverviewController);

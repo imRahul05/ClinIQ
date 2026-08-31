@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { authMiddleware } from "../middleware/auth";
 import {
   getPatientProfileController,
   getPatientLabsController,
@@ -9,7 +8,6 @@ import {
 } from "../controllers/patient.controller";
 
 const router = Router();
-router.use(authMiddleware);
 
 router.get("/profile", getPatientProfileController);
 router.get("/labs-and-vitals", getPatientLabsController);

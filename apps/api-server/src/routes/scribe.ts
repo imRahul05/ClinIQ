@@ -1,12 +1,11 @@
 import { Router } from "express";
-import { authMiddleware, requireRole } from "../middleware/auth";
+import { requireRole } from "../middleware/auth";
 import {
   createSoapNoteController,
   signEncounterController,
 } from "../controllers/scribe.controller";
 
 const router = Router();
-router.use(authMiddleware);
 
 router.post(
   "/notes",

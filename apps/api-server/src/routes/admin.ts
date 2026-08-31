@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware, requireAdmin } from "../middleware/auth";
+import { requireAdmin } from "../middleware/auth";
 import {
   getAdminUsersController,
   getAdminProvidersController,
@@ -7,7 +7,6 @@ import {
 } from "../controllers/admin.controller";
 
 const router = Router();
-router.use(authMiddleware);
 router.use(requireAdmin);
 
 router.get("/users", getAdminUsersController);

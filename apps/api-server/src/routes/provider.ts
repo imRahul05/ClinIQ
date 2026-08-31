@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware, requireRole } from "../middleware/auth";
+import { requireRole } from "../middleware/auth";
 import {
   getProviderWorklistController,
   updateAvailabilityController,
@@ -7,7 +7,6 @@ import {
 } from "../controllers/provider.controller";
 
 const router = Router();
-router.use(authMiddleware);
 router.use(requireRole("physician", "nurse", "care_coordinator", "admin"));
 
 router.get("/worklist", getProviderWorklistController);

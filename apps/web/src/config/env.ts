@@ -1,21 +1,59 @@
 import { z } from "zod";
 
+const emptyStringToUndefined = (val: unknown): unknown =>
+  typeof val === "string" && val.trim() === "" ? undefined : val;
+
+function sanitizeHttpUrl(defaultUrl: string, errorLabel: string) {
+  return z.preprocess(
+    emptyStringToUndefined,
+    z
+      .string({
+        invalid_type_error: `${errorLabel} must be a valid URL string.`,
+      })
+      .refine(
+        (val) => val.startsWith("http://") || val.startsWith("https://"),
+        {
+          message: `${errorLabel} must start with http:// or https://`,
+        }
+      )
+      .default(defaultUrl)
+  );
+}
+
+function sanitizeWsUrl(defaultUrl: string, errorLabel: string) {
+  return z.preprocess(
+    emptyStringToUndefined,
+    z
+      .string({
+        invalid_type_error: `${errorLabel} must be a valid WebSocket URL string.`,
+      })
+      .refine(
+        (val) =>
+          val.startsWith("ws://") ||
+          val.startsWith("wss://") ||
+          val.startsWith("http://") ||
+          val.startsWith("https://"),
+        {
+          message: `${errorLabel} must start with ws://, wss://, http://, or https://`,
+        }
+      )
+      .default(defaultUrl)
+  );
+}
+
 export const clientEnvSchema = z.object({
-  NEXT_PUBLIC_API_URL: z
-    .string({
-      invalid_type_error: "NEXT_PUBLIC_API_URL must be a valid URL string.",
-    })
-    .default("http://localhost:4000"),
-  NEXT_PUBLIC_WS_URL: z
-    .string({
-      invalid_type_error: "NEXT_PUBLIC_WS_URL must be a valid WebSocket URL string.",
-    })
-    .default("ws://localhost:4000"),
-  NEXT_PUBLIC_MEDPLUM_BASE_URL: z
-    .string({
-      invalid_type_error: "NEXT_PUBLIC_MEDPLUM_BASE_URL must be a valid URL string.",
-    })
-    .default("http://localhost:8103/"),
+  NEXT_PUBLIC_API_URL: sanitizeHttpUrl(
+    "http://localhost:4000",
+    "NEXT_PUBLIC_API_URL"
+  ),
+  NEXT_PUBLIC_WS_URL: sanitizeWsUrl(
+    "ws://localhost:4000",
+    "NEXT_PUBLIC_WS_URL"
+  ),
+  NEXT_PUBLIC_MEDPLUM_BASE_URL: sanitizeHttpUrl(
+    "http://localhost:8103/",
+    "NEXT_PUBLIC_MEDPLUM_BASE_URL"
+  ),
 });
 
 export type ClientEnv = z.infer<typeof clientEnvSchema>;
@@ -44,12 +82,17 @@ export function formatClientEnvErrors(error: z.ZodError): string {
 }
 
 export function buildClientConfig(env: ClientEnv): ClientConfig {
+  const apiUrl = env.NEXT_PUBLIC_API_URL.trim().replace(/\/+$/, "");
+  const wsUrl = env.NEXT_PUBLIC_WS_URL.trim().replace(/\/+$/, "");
+  const trimmedMedplum = env.NEXT_PUBLIC_MEDPLUM_BASE_URL.trim();
+  const medplumBaseUrl = trimmedMedplum.endsWith("/")
+    ? trimmedMedplum
+    : `${trimmedMedplum}/`;
+
   return {
-    apiUrl: env.NEXT_PUBLIC_API_URL.replace(/\/$/, ""),
-    wsUrl: env.NEXT_PUBLIC_WS_URL.replace(/\/$/, ""),
-    medplumBaseUrl: env.NEXT_PUBLIC_MEDPLUM_BASE_URL.endsWith("/")
-      ? env.NEXT_PUBLIC_MEDPLUM_BASE_URL
-      : `${env.NEXT_PUBLIC_MEDPLUM_BASE_URL}/`,
+    apiUrl,
+    wsUrl,
+    medplumBaseUrl,
   };
 }
 
@@ -70,7 +113,7 @@ export function validateClientEnv(
   if (!result.success) {
     const formattedMessage = formatClientEnvErrors(result.error);
     console.error(formattedMessage);
-    // In client browser, provide fallback configuration rather than crashing UI render
+    // In client browser or build-time fallback, provide safe default configuration rather than crashing UI render / static prerender
     return {
       apiUrl: "http://localhost:4000",
       wsUrl: "ws://localhost:4000",

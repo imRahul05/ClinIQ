@@ -13,7 +13,7 @@ export interface LogPhiAccessParams {
   requestPath?: string;
   ipAddress?: string;
   userAgent?: string;
-  details?: Record<string, unknown>;
+  details?: Record<string, string | number | boolean | null | undefined | string[]>;
 }
 
 export async function logPhiAccess(params: LogPhiAccessParams): Promise<void> {

@@ -37,9 +37,10 @@ export const envSchema = z.object({
     .default("http://localhost:3000"),
   MEDPLUM_BASE_URL: z
     .string({
-      required_error: "MEDPLUM_BASE_URL is required for FHIR clinical data sync.",
+      invalid_type_error: "MEDPLUM_BASE_URL must be a valid string.",
     })
-    .url("MEDPLUM_BASE_URL must be a valid URL (e.g. 'http://localhost:8103/')."),
+    .url("MEDPLUM_BASE_URL must be a valid URL (e.g. 'http://localhost:8103/').")
+    .default("http://localhost:8103/"),
   ANTHROPIC_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),

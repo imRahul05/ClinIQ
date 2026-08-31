@@ -57,12 +57,17 @@ describe("API Server Environment Configuration", () => {
     expect(() => validateEnv(invalidEnv)).toThrowError(/NODE_ENV is required and must be explicitly set/);
   });
 
-  it("should apply intentional technical defaults for PORT, LOG_LEVEL, and CORS_ORIGIN", () => {
-    const config = validateEnv(validBaseEnv);
+  it("should apply intentional technical defaults for PORT, LOG_LEVEL, CORS_ORIGIN, and MEDPLUM_BASE_URL", () => {
+    const config = validateEnv({
+      NODE_ENV: "development",
+      PORT: "4000",
+      JWT_SECRET: "test-secret-key-12345",
+    });
 
     expect(config.port).toBe(4000);
     expect(config.logLevel).toBe("info");
     expect(config.cors.origin).toBe("http://localhost:3000");
+    expect(config.medplum.baseUrl).toBe("http://localhost:8103/");
   });
 
   it("should mark optional AI capabilities as disabled when keys are missing", () => {

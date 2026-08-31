@@ -11,19 +11,9 @@ import {
   StatCard,
 } from "@cliniq/ui";
 import { DollarSign, ShieldAlert, TrendingUp } from "lucide-react";
+import type { EmployerSavingsEventItem } from "@cliniq/api-spec";
 
-interface SavingsEvent {
-  id: string;
-  date: string;
-  type: string;
-  reason: string;
-  avoidedCost: string;
-  virtualCost: string;
-  netSavings: string;
-  [key: string]: string;
-}
-
-const DEMO_SAVINGS_EVENTS: SavingsEvent[] = [
+const DEMO_SAVINGS_EVENTS: EmployerSavingsEventItem[] = [
   { id: "ev-1", date: "Aug 29, 2026", type: "ER Deflection", reason: "Acute Hypertensive Guidance & Nurse Callback", avoidedCost: "$1,850.00", virtualCost: "$45.00", netSavings: "$1,805.00" },
   { id: "ev-2", date: "Aug 26, 2026", type: "ER Deflection", reason: "Diabetic Hyperglycemia Triage & Med Titration", avoidedCost: "$1,850.00", virtualCost: "$45.00", netSavings: "$1,805.00" },
   { id: "ev-3", date: "Aug 22, 2026", type: "Urgent Care Deflection", reason: "Severe URI Symptom Evaluation & Prescription", avoidedCost: "$220.00", virtualCost: "$45.00", netSavings: "$175.00" },
@@ -82,7 +72,7 @@ export default function EmployerSavingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
-          <DataTable<SavingsEvent>
+          <DataTable<EmployerSavingsEventItem>
             data={DEMO_SAVINGS_EVENTS}
             keyExtractor={(item) => item.id}
             columns={[

@@ -6,20 +6,9 @@ import {
   DataTable,
   Badge,
 } from "@cliniq/ui";
+import type { AuditLogUiItem } from "@cliniq/api-spec";
 
-interface AuditLog {
-  id: string;
-  actor: string;
-  patient: string;
-  action: "READ" | "UPDATE" | "DELETE" | "EXPORT";
-  resource: string;
-  path: string;
-  ip: string;
-  timestamp: string;
-  [key: string]: string;
-}
-
-const DEMO_AUDIT_LOGS: AuditLog[] = [
+const DEMO_AUDIT_LOGS: AuditLogUiItem[] = [
   { id: "log-1", actor: "Elena Rostova, RN (nurse.elena@apexhealthiq.demo)", patient: "Sarah Johnson (948204)", action: "READ", resource: "PatientChart", path: "/api/provider/chart/p-1", ip: "192.168.1.42", timestamp: "Aug 31, 2026 at 11:42 AM" },
   { id: "log-2", actor: "Elena Rostova, RN (nurse.elena@apexhealthiq.demo)", patient: "Sarah Johnson (948204)", action: "UPDATE", resource: "Encounter", path: "/api/scribe/sign-encounter", ip: "192.168.1.42", timestamp: "Aug 31, 2026 at 11:45 AM" },
   { id: "log-3", actor: "Sarah Johnson (sarah.johnson@apexhealthiq.demo)", patient: "Sarah Johnson (948204)", action: "READ", resource: "LabReading", path: "/api/patient/labs-and-vitals", ip: "73.189.44.12", timestamp: "Aug 31, 2026 at 11:10 AM" },
@@ -47,7 +36,7 @@ export default function AdminAuditPage() {
 
       <Card notch className="bg-[var(--paper-raised)]">
         <CardContent className="pt-6">
-          <DataTable<AuditLog>
+          <DataTable<AuditLogUiItem>
             data={DEMO_AUDIT_LOGS}
             keyExtractor={(item) => item.id}
             searchPlaceholder="Search audit ledger by actor, patient subject, resource, or action..."

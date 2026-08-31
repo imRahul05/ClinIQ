@@ -1,35 +1,17 @@
 import { http } from "./http";
+import type {
+  EmployerOverviewResponse,
+  SavingsLedgerResponse,
+  HedisGapsResponse,
+} from "@cliniq/api-spec";
 
-export interface EmployerOverviewResponse {
-  totalCoveredLives: number;
-  averageOhs: number;
-  riskDistribution: {
-    low: number;
-    moderate: number;
-    high: number;
-    rising: number;
-  };
-}
-
-export interface SavingsLedgerResponse {
-  totalErAvoided: number;
-  grossSavings: number;
-  netSavings: number;
-  estimatedPmpmSavings: number;
-  recentEvents: Array<{
-    id: string;
-    eventType: string;
-    grossSavings: string;
-    netSavings: string;
-    eventDate: string;
-  }>;
-}
-
-export interface HedisGapsResponse {
-  totalGaps: number;
-  closedGaps: number;
-  closureRatePercent: number;
-}
+export type {
+  RiskDistribution,
+  EmployerOverviewResponse,
+  SavingsLedgerEventItem,
+  SavingsLedgerResponse,
+  HedisGapsResponse,
+} from "@cliniq/api-spec";
 
 export async function getEmployerOverviewApi(employerId?: string): Promise<EmployerOverviewResponse> {
   return http.get<EmployerOverviewResponse>("/api/employer/overview", { params: { employerId } });
@@ -42,3 +24,4 @@ export async function getEmployerSavingsLedgerApi(employerId?: string): Promise<
 export async function getEmployerHedisGapsApi(): Promise<HedisGapsResponse> {
   return http.get<HedisGapsResponse>("/api/employer/hedis-gaps");
 }
+

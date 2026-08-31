@@ -9,20 +9,9 @@ import {
   DataTable,
 } from "@cliniq/ui";
 import { Eye, Sparkles } from "lucide-react";
+import type { FaxInboxItem } from "@cliniq/api-spec";
 
-interface FaxItem {
-  id: string;
-  sender: string;
-  date: string;
-  pages: number;
-  classification: string;
-  confidence: string;
-  patientMatch: string;
-  status: string;
-  [key: string]: string | number;
-}
-
-const DEMO_FAXES: FaxItem[] = [
+const DEMO_FAXES: FaxInboxItem[] = [
   { id: "fax-1", sender: "(555) 839-2910", date: "Aug 30, 2026 at 11:15 AM", pages: 3, classification: "Discharge Summary", confidence: "98%", patientMatch: "Sarah Johnson (MRN: 948204)", status: "Pending Review" },
   { id: "fax-2", sender: "(555) 192-3849", date: "Aug 29, 2026 at 4:20 PM", pages: 2, classification: "Lab Requisition", confidence: "96%", patientMatch: "Marcus Miller (MRN: 830219)", status: "Verified" },
   { id: "fax-3", sender: "(555) 441-9923", date: "Aug 28, 2026 at 1:05 PM", pages: 5, classification: "Specialist Referral", confidence: "94%", patientMatch: "David Vance (MRN: 419820)", status: "Verified" },
@@ -48,7 +37,7 @@ export default function FaxInboxPage() {
 
       <Card notch className="bg-[var(--paper-raised)]">
         <CardContent className="pt-6">
-          <DataTable<FaxItem>
+          <DataTable<FaxInboxItem>
             data={DEMO_FAXES}
             keyExtractor={(item) => item.id}
             searchPlaceholder="Search faxes by sender, classification, or patient..."

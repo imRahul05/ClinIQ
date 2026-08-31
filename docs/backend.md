@@ -23,10 +23,10 @@ apps/api-server/
 │   │       ├── scribe.ts       # Clinical SOAP note generator with cascading fallback
 │   │       └── fax.ts          # Document classification & OCR entity parsing
 │   ├── middleware/
-│   │   ├── auth.ts             # JWT token verification & multi-tenant org scoping
+│   │   ├── auth.ts             # Medplum JWKS RS256 verification, FHIR profile mapping & org scoping
 │   │   └── errorHandler.ts     # Global Express 5 async error handling
 │   ├── routes/
-│   │   ├── auth.ts             # Login, token refresh & demo account switching
+│   │   ├── auth.ts             # Medplum OAuth exchange (/api/auth/exchange) & identity (/api/auth/me)
 │   │   ├── calls.ts            # Call session initiation & WebSockets signaling
 │   │   ├── scribe.ts           # Ambient transcription & SOAP note signing
 │   │   ├── patient.ts          # Longitudinal records & vitals API

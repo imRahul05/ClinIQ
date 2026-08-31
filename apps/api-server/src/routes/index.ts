@@ -1,5 +1,8 @@
 import { Router } from "express";
+import { authMiddleware } from "../middleware/auth";
 import authRoutes from "./auth";
+import statusRoutes from "./status";
+import { getSystemStatusController } from "../controllers/status.controller";
 import callRoutes from "./calls";
 import scribeRoutes from "./scribe";
 import patientRoutes from "./patient";
@@ -12,19 +15,25 @@ import adminRoutes from "./admin";
 
 const router = Router();
 
+// Public routes
+router.use("/status", statusRoutes);
+router.get("/health", getSystemStatusController); // Backward compatibility alias to hardened status controller
 router.use("/auth", authRoutes);
-router.use("/calls", callRoutes);
-router.use("/scribe", scribeRoutes);
-router.use("/patient", patientRoutes);
-router.use("/provider", providerRoutes);
-router.use("/employer", employerRoutes);
-router.use("/care-gaps", careGapsRoutes);
-router.use("/fax", faxRoutes);
-router.use("/audit", auditRoutes);
-router.use("/admin", adminRoutes);
 
-router.get("/health", (req, res) => {
-  res.json({ status: "ok", service: "ClinIQ API Server", timestamp: new Date().toISOString() });
-});
+// Protected routes (centralized authentication barrier)
+const protectedRouter = Router();
+protectedRouter.use(authMiddleware);
+
+protectedRouter.use("/calls", callRoutes);
+protectedRouter.use("/scribe", scribeRoutes);
+protectedRouter.use("/patient", patientRoutes);
+protectedRouter.use("/provider", providerRoutes);
+protectedRouter.use("/employer", employerRoutes);
+protectedRouter.use("/care-gaps", careGapsRoutes);
+protectedRouter.use("/fax", faxRoutes);
+protectedRouter.use("/audit", auditRoutes);
+protectedRouter.use("/admin", adminRoutes);
+
+router.use(protectedRouter);
 
 export default router;

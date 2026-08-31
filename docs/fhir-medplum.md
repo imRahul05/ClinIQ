@@ -27,22 +27,24 @@ Unlike proprietary health cloud SaaS, ClinIQ does **NOT** require any external M
  └──────────────────────┘
 ```
 
-- **Open-Source FHIR Engine**: Runs locally or in your private VPC using standard Docker containers (`medplum/medplum-server:latest`).
-- **Zero Third-Party Vendor Auth**: Authentication and token verification are handled internally by ClinIQ.
-- **Upgradability**: Medplum SDK npm packages (`@medplum/core`, `@medplum/fhirtypes`, `@medplum/react-hooks`) are used as standard libraries, so you can bump versions anytime without touching core application logic.
+- **Open-Source FHIR Engine & IAM Provider**: Runs locally or in your private VPC using standard Docker containers (`medplum/medplum-server:latest`).
+- **Standard SMART on FHIR OAuth2**: Authentication is handled via Medplum's built-in OAuth2/OIDC server with Google/Microsoft SSO, Passkeys/MFA, and compartment-based AccessPolicies.
+- **Anti-Corruption Layer**: Medplum SDK npm packages (`@medplum/core`, `@medplum/fhirtypes`, `@medplum/react-hooks`) are encapsulated inside `@cliniq/fhir-core`, so upstream version updates never cause breaking changes to ClinIQ business logic.
 
 ---
 
-## 2. Local Self-Hosted Client (`src/client.ts`)
+## 2. Anti-Corruption Facade & SSR-Safe Client (`src/client.ts`)
 
-The singleton client in `packages/fhir-core/src/client.ts` connects directly to your self-hosted endpoint (`http://localhost:8103/` by default):
+The singleton client in `packages/fhir-core/src/client.ts` connects directly to your self-hosted endpoint (`http://localhost:8103/` by default) with SSR isolation:
 
 ```typescript
-import { MedplumClient } from "@medplum/core";
+import { getMedplumClient, createScopedMedplumClient } from "@cliniq/fhir-core";
 
-export const medplum = new MedplumClient({
-  baseUrl: process.env.NEXT_PUBLIC_MEDPLUM_BASE_URL || "http://localhost:8103/",
-});
+// Client-side singleton
+export const medplum = getMedplumClient();
+
+// Request-scoped SSR instance for Express / Next.js Server Components
+export const scopedClient = createScopedMedplumClient(authToken);
 ```
 
 ---

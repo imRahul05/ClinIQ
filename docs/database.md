@@ -35,13 +35,13 @@ ClinIQ uses **PostgreSQL** paired with **Drizzle ORM** (`@cliniq/db`) for strict
 ### Tenancy & Identity
 - **`organizations`**: Root health system or provider group tenancy partition (`id`, `name`, `slug`, `is_production`).
 - **`employers`**: B2B employer client groups (`id`, `organization_id`, `name`, `covered_lives`, `pmpm_rate`, `er_cost_per_visit`).
-- **`users`**: System accounts (`id`, `organization_id`, `employer_id`, `role`, `email`, `password_hash`, `patient_id`, `provider_id`).
+- **`users`**: System accounts (`id`, `organization_id`, `employer_id`, `role`, `email`, `password_hash`, `patient_id`, `provider_id`, `medplum_user_id`, `medplum_practitioner_id`).
 - **`roles`**: Customizable granular permissions attached to tenants.
 
 ### Clinical Operational Models
-- **`providers`**: Clinician profiles with NPI numbers, specialty, and credentials (`id`, `organization_id`, `npi`, `npi_verified`, `role`).
+- **`providers`**: Clinician profiles with NPI numbers, specialty, and credentials (`id`, `organization_id`, `npi`, `npi_verified`, `role`, `medplum_user_id`, `medplum_practitioner_id`).
 - **`nurse_availability`**: Real-time nurse status (`provider_id`, `is_available`, `status`).
-- **`patients`**: Patient demographic and risk records (`id`, `organization_id`, `employer_id`, `mrn`, `ohs_score`, `risk_tier`, `assigned_nurse_id`).
+- **`patients`**: Patient demographic and risk records (`id`, `organization_id`, `employer_id`, `mrn`, `medplum_patient_id`, `ohs_score`, `risk_tier`, `assigned_nurse_id`).
 - **`conditions`**: Diagnoses with ICD-10 codes (`id`, `patient_id`, `icd_code`, `status`).
 - **`medications`**: Prescriptions with dosages and refill tracking (`id`, `patient_id`, `name`, `dose`, `prescriber`).
 - **`lab_readings`**: Diagnostic values with reference ranges (`id`, `patient_id`, `biomarker`, `value`, `unit`, `interpretation`).

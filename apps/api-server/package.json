@@ -24,6 +24,7 @@
     "express": "^5.0.1",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
+    "jose": "^6.2.10",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.3",
     "pino": "^9.6.0",

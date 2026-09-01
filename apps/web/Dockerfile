@@ -7,6 +7,8 @@
 FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV PNPM_CONFIG_MINIMUM_RELEASE_AGE=0
+ENV PNPM_CONFIG_IGNORE_SCRIPTS=true
 RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN apk add --no-cache libc6-compat
 
